@@ -11,14 +11,14 @@ jest.mock('@nx/js/src/utils/typescript/ts-solution-setup', () => ({
   isUsingTsSolutionSetup: jest.fn(() => false),
 }));
 
-import { CreateNodesContextV2 } from '@nx/devkit';
+import { CreateNodesContext } from '@nx/devkit';
 import { createNodesV2 } from './plugin';
 import { TempFs } from 'nx/src/internal-testing-utils/temp-fs';
 import { join } from 'path';
 
 describe('@nx/webpack/plugin', () => {
   let createNodesFunction = createNodesV2[1];
-  let context: CreateNodesContextV2;
+  let context: CreateNodesContext;
   let tempFs: TempFs;
 
   beforeEach(() => {

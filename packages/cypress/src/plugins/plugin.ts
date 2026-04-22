@@ -1,7 +1,7 @@
 import {
-  type CreateNodesContextV2,
+  type CreateNodesContext,
   createNodesFromFiles,
-  type CreateNodesV2,
+  type CreateNodes,
   detectPackageManager,
   getPackageManagerCommand,
   joinPathFragments,
@@ -42,7 +42,7 @@ const defaultPatterns = {
   },
 };
 
-export const createNodes: CreateNodesV2<CypressPluginOptions> = [
+export const createNodes: CreateNodes<CypressPluginOptions> = [
   cypressConfigGlob,
   async (configFiles, options, context) => {
     const optionsHash = hashObject(options);
@@ -73,7 +73,7 @@ export const createNodesV2 = createNodes;
 async function createNodesInternal(
   configFilePath: string,
   options: CypressPluginOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   pluginCache: PluginCache<CypressTargets>,
   pmc: ReturnType<typeof getPackageManagerCommand>
 ) {
@@ -234,7 +234,7 @@ async function buildCypressTargets(
   configFilePath: string,
   projectRoot: string,
   options: CypressPluginOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   pmc: ReturnType<typeof getPackageManagerCommand>
 ): Promise<CypressTargets> {
   const cypressConfig = await loadConfigFile(

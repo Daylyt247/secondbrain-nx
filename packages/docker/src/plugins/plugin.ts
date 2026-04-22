@@ -1,11 +1,11 @@
 import {
-  type CreateNodesV2,
+  type CreateNodes,
   type ProjectConfiguration,
   type TargetConfiguration,
   createNodesFromFiles,
   readJsonFile,
   writeJsonFile,
-  CreateNodesContextV2,
+  CreateNodesContext,
   workspaceRoot,
 } from '@nx/devkit';
 import { calculateHashesForCreateNodes } from '@nx/devkit/src/utils/calculate-hash-for-create-nodes';
@@ -65,7 +65,7 @@ function writeTargetsCache(
 
 const dockerfileGlob = '**/Dockerfile';
 
-export const createNodesV2: CreateNodesV2<DockerPluginOptions> = [
+export const createNodes: CreateNodes<DockerPluginOptions> = [
   dockerfileGlob,
   async (configFilePaths, options, context) => {
     const optionsHash = hashObject(options);
@@ -102,11 +102,16 @@ export const createNodesV2: CreateNodesV2<DockerPluginOptions> = [
   },
 ];
 
+/**
+ * @deprecated Use {@link createNodes} instead. This will be removed in Nx 24.
+ */
+export const createNodesV2 = createNodes;
+
 async function createNodesInternal(
   configFilePath: string,
   hash: string,
   normalizedOptions: NormalizedDockerPluginOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   targetsCache: Record<string, DockerTargets>
 ) {
   const projectRoot = dirname(configFilePath);
@@ -134,7 +139,7 @@ function interpolateDockerTargetOptions(
   options: DockerTargetOptions,
   projectRoot: string,
   imageRef: string,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ): DockerTargetOptions {
   const commitSha = getLatestCommitSha();
   const projectName = getProjectName(projectRoot, context.workspaceRoot);
@@ -254,7 +259,7 @@ function buildTargetConfigurations(
 async function createDockerTargets(
   projectRoot: string,
   options: NormalizedDockerPluginOptions,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ) {
   const imageRef = getProjectNameFromPath(projectRoot, workspaceRoot);
 

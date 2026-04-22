@@ -1,4 +1,4 @@
-import { createNodesFromFiles, NxPluginV2 } from '../src/project-graph/plugins';
+import { createNodesFromFiles, NxPlugin } from '../src/project-graph/plugins';
 import { workspaceRoot } from '../src/utils/workspace-root';
 import {
   buildPackageJsonWorkspacesMatcher,
@@ -28,9 +28,9 @@ function writeCache() {
   }
 }
 
-const plugin: NxPluginV2 = {
+const plugin: NxPlugin = {
   name: 'nx-all-package-jsons-plugin',
-  createNodesV2: [
+  createNodes: [
     '*/**/package.json',
     (configFiles, options, context) => {
       const cache = readPackageJsonConfigurationCache();

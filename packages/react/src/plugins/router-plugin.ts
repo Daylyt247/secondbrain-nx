@@ -1,6 +1,6 @@
 import {
-  type CreateNodesV2,
-  type CreateNodesContextV2,
+  type CreateNodes,
+  type CreateNodesContext,
   detectPackageManager,
   readJsonFile,
   type TargetConfiguration,
@@ -57,7 +57,7 @@ function writeTargetsToCache(
   writeJsonFile(cachePath, results);
 }
 
-export const createNodesV2: CreateNodesV2<ReactRouterPluginOptions> = [
+export const createNodes: CreateNodes<ReactRouterPluginOptions> = [
   reactRouterConfigBlob,
   async (configFiles, options, context) => {
     const optionsHash = hashObject(options);
@@ -145,11 +145,16 @@ export const createNodesV2: CreateNodesV2<ReactRouterPluginOptions> = [
   },
 ];
 
+/**
+ * @deprecated Use {@link createNodes} instead. This will be removed in Nx 24.
+ */
+export const createNodesV2 = createNodes;
+
 async function buildReactRouterTargets(
   configFilePath: string,
   projectRoot: string,
   options: ReactRouterPluginOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   siblingFiles: string[],
   isUsingTsSolutionSetup: boolean
 ): Promise<ReactRouterTargets> {
@@ -361,7 +366,7 @@ function normalizeOptions(options: ReactRouterPluginOptions) {
 
 function checkIfConfigFileShouldBeProject(
   projectRoot: string,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ): boolean {
   // Do not create a project if package.json and project.json isn't there.
   const siblingFiles = readdirSync(join(context.workspaceRoot, projectRoot));

@@ -10,7 +10,7 @@ import {
   type Tree,
 } from '@nx/devkit';
 import { addPlugin } from '@nx/devkit/src/utils/add-plugin';
-import { createNodesV2 } from '../../plugins/plugin';
+import { createNodes } from '../../plugins/plugin';
 import { assertNotUsingTsSolutionSetup } from '../utils/validations';
 import {
   getInstalledAngularDevkitVersion,
@@ -38,7 +38,7 @@ export async function angularInitGenerator(
       tree,
       await createProjectGraphAsync(),
       '@nx/angular/plugin',
-      createNodesV2,
+      createNodes,
       {
         targetNamePrefix: ['', 'angular:', 'angular-'],
       },

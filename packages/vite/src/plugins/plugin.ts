@@ -1,8 +1,8 @@
 import {
   CreateDependencies,
-  CreateNodesContextV2,
+  CreateNodesContext,
   createNodesFromFiles,
-  CreateNodesV2,
+  CreateNodes,
   detectPackageManager,
   getPackageManagerCommand,
   joinPathFragments,
@@ -78,7 +78,7 @@ export const createDependencies: CreateDependencies = () => {
 
 const viteVitestConfigGlob = '**/{vite,vitest}.config.{js,ts,mjs,mts,cjs,cts}';
 
-export const createNodes: CreateNodesV2<VitePluginOptions> = [
+export const createNodes: CreateNodes<VitePluginOptions> = [
   viteVitestConfigGlob,
   async (configFilePaths, options, context) => {
     const optionsHash = hashObject(options);
@@ -201,7 +201,7 @@ async function buildViteTargets(
   tsConfigFiles: string[],
   hasReactRouterConfig: boolean,
   isUsingTsSolutionSetup: boolean,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   pmc: ReturnType<typeof getPackageManagerCommand>,
   tsconfigInputs: string[]
 ): Promise<ViteTargets> {
@@ -836,7 +836,7 @@ function collectTsconfigInputsByProjectRoot(
 
 function checkIfConfigFileShouldBeProject(
   projectRoot: string,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ): boolean {
   // Do not create a project if package.json and project.json isn't there.
   const siblingFiles = readdirSync(join(context.workspaceRoot, projectRoot));

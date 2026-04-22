@@ -13,7 +13,7 @@ import {
 } from '@nx/devkit/src/generators/plugin-migrations/executor-to-plugin-migrator';
 import { ast, query } from '@phenomnomnominal/tsquery';
 import * as ts from 'typescript';
-import { createNodesV2, type RspackPluginOptions } from '../../plugins/plugin';
+import { createNodes, type RspackPluginOptions } from '../../plugins/plugin';
 import { rspackCoreVersion } from '../../utils/versions';
 import {
   buildPostTargetTransformerFactory,
@@ -42,7 +42,7 @@ export async function convertToInferred(tree: Tree, options: Schema) {
       tree,
       projectGraph,
       '@nx/rspack/plugin',
-      createNodesV2,
+      createNodes,
       {
         buildTargetName: 'build',
         previewTargetName: 'preview',

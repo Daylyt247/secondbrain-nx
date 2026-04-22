@@ -11,7 +11,7 @@ import {
 } from '@nx/devkit';
 import { addPlugin } from '@nx/devkit/src/utils/add-plugin';
 import { InitGeneratorSchema } from './schema';
-import { createNodesV2 } from '../../plugins/plugin';
+import { createNodes } from '../../plugins/plugin';
 import { nxVersion } from '../../utils/versions';
 
 export function updateDependencies(tree: Tree, schema: InitGeneratorSchema) {

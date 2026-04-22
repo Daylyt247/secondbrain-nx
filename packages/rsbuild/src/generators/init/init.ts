@@ -9,7 +9,7 @@ import {
 } from '@nx/devkit';
 import { addPlugin } from '@nx/devkit/src/utils/add-plugin';
 import { InitGeneratorSchema } from './schema';
-import { createNodesV2 } from '../../plugins/plugin';
+import { createNodes } from '../../plugins/plugin';
 import { nxVersion, rsbuildVersion } from '../../utils/versions';
 
 export function updateDependencies(tree: Tree, schema: InitGeneratorSchema) {
@@ -44,7 +44,7 @@ export async function initGeneratorInternal(
       tree,
       await createProjectGraphAsync(),
       '@nx/rsbuild',
-      createNodesV2,
+      createNodes,
       {
         buildTargetName: ['build', 'rsbuild:build', 'rsbuild-build'],
         devTargetName: ['dev', 'rsbuild:dev', 'rsbuild-dev'],

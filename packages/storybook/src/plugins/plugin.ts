@@ -1,8 +1,8 @@
 import {
   CreateDependencies,
-  CreateNodesContextV2,
+  CreateNodesContext,
   createNodesFromFiles,
-  CreateNodesV2,
+  CreateNodes,
   detectPackageManager,
   getPackageManagerCommand,
   joinPathFragments,
@@ -54,7 +54,7 @@ export const createDependencies: CreateDependencies = () => {
 
 const storybookConfigGlob = '**/.storybook/main.{js,ts,mjs,mts,cjs,cts}';
 
-export const createNodes: CreateNodesV2<StorybookPluginOptions> = [
+export const createNodes: CreateNodes<StorybookPluginOptions> = [
   storybookConfigGlob,
   async (configFilePaths, options, context) => {
     const normalizedOptions = normalizeOptions(options);
@@ -93,7 +93,7 @@ export const createNodesV2 = createNodes;
 async function createNodesInternal(
   configFilePath: string,
   options: Required<StorybookPluginOptions>,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   targetsCache: Record<string, Record<string, TargetConfiguration>>,
   pmc: ReturnType<typeof getPackageManagerCommand>
 ) {
@@ -151,7 +151,7 @@ async function buildStorybookTargets(
   configFilePath: string,
   projectRoot: string,
   options: StorybookPluginOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   projectName: string,
   pmc: ReturnType<typeof getPackageManagerCommand>
 ) {
@@ -332,7 +332,7 @@ function serveStaticTarget(
 
 async function getStorybookFramework(
   configFilePath: string,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ): Promise<string | undefined> {
   const resolvedPath = join(context.workspaceRoot, configFilePath);
   const mainTsJs = readFileSync(resolvedPath, 'utf-8');
@@ -389,7 +389,7 @@ function parseFrameworkName(mainTsJs: string) {
 
 async function getStorybookFullyResolvedFramework(
   configFilePath: string,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ): Promise<string> {
   const resolvedPath = join(context.workspaceRoot, configFilePath);
   const { framework } = await loadConfigFile<StorybookConfig>(resolvedPath);

@@ -1,9 +1,9 @@
 import type { NuxtOptions } from '@nuxt/schema';
 import {
   CreateDependencies,
-  CreateNodesContextV2,
+  CreateNodesContext,
   createNodesFromFiles,
-  CreateNodesV2,
+  CreateNodes,
   detectPackageManager,
   getPackageManagerCommand,
   joinPathFragments,
@@ -49,7 +49,7 @@ export interface NuxtPluginOptions {
   watchDepsTargetName?: string;
 }
 
-export const createNodes: CreateNodesV2<NuxtPluginOptions> = [
+export const createNodes: CreateNodes<NuxtPluginOptions> = [
   '**/nuxt.config.{js,ts,mjs,mts,cjs,cts}',
   async (files, options, context) => {
     //TODO(@nrwl/nx-vue-reviewers): This should batch hashing like our other plugins.
@@ -69,7 +69,7 @@ export const createNodesV2 = createNodes;
 async function createNodesInternal(
   configFilePath: string,
   options: NuxtPluginOptions,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ) {
   const projectRoot = dirname(configFilePath);
   // Do not create a project if package.json and project.json isn't there.
@@ -115,7 +115,7 @@ async function buildNuxtTargets(
   configFilePath: string,
   projectRoot: string,
   options: NuxtPluginOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   pmc: ReturnType<typeof getPackageManagerCommand>
 ) {
   const nuxtConfig: {
@@ -241,7 +241,7 @@ function buildStaticTarget(
 
 async function getInfoFromNuxtConfig(
   configFilePath: string,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   projectRoot: string
 ): Promise<{
   buildDir: string;

@@ -1,7 +1,7 @@
 import {
-  CreateNodesContextV2,
+  CreateNodesContext,
   createNodesFromFiles,
-  CreateNodesV2,
+  CreateNodes,
   detectPackageManager,
   getPackageManagerCommand,
   joinPathFragments,
@@ -92,7 +92,7 @@ function writeTargetsToCache(
 
 const jestConfigGlob = '**/jest.config.{cjs,mjs,js,cts,mts,ts}';
 
-export const createNodes: CreateNodesV2<JestPluginOptions> = [
+export const createNodes: CreateNodes<JestPluginOptions> = [
   jestConfigGlob,
   async (configFiles, options, context) => {
     const optionsHash = hashObject(options);
@@ -256,7 +256,7 @@ function checkIfConfigFileShouldBeProject(
   configFilePath: string,
   projectRoot: string,
   isInPackageManagerWorkspaces: (path: string) => boolean,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ): boolean {
   // Do not create a project if package.json and project.json isn't there.
   const siblingFiles = readdirSync(join(context.workspaceRoot, projectRoot));
@@ -297,7 +297,7 @@ async function buildJestTargets(
   configFilePath: string,
   projectRoot: string,
   options: JestPluginOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   presetCache: Record<string, unknown>,
   pmc: ReturnType<typeof getPackageManagerCommand>
 ): Promise<Pick<ProjectConfiguration, 'targets' | 'metadata'>> {
@@ -913,7 +913,7 @@ function getOutputs(
   projectRoot: string,
   coverageDirectory: string | undefined,
   outputFile: string | undefined,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ): string[] {
   function getOutput(path: string): string {
     const relativePath = relative(
@@ -990,7 +990,7 @@ async function getTestPaths(
   projectRoot: string,
   rawConfig: any,
   rootDir: string,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   presetCache: Record<string, unknown>
 ): Promise<{ specs: string[]; testMatch: string[] }> {
   const testMatch = await getJestOption<string[]>(

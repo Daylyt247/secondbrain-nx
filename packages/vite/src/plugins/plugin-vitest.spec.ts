@@ -1,5 +1,5 @@
 import * as devkit from '@nx/devkit';
-import { CreateNodesContextV2 } from '@nx/devkit';
+import { CreateNodesContext } from '@nx/devkit';
 import { createNodesV2 } from './plugin';
 import { loadViteDynamicImport } from '../utils/executor-utils';
 
@@ -80,7 +80,7 @@ jest.mock('../utils/executor-utils', () => ({
 
 describe('@nx/vite/plugin', () => {
   let createNodesFunction = createNodesV2[1];
-  let context: CreateNodesContextV2;
+  let context: CreateNodesContext;
 
   describe('root project', () => {
     beforeEach(async () => {

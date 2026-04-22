@@ -1,8 +1,8 @@
 import {
-  CreateNodesContextV2,
+  CreateNodesContext,
   createNodesFromFiles,
   CreateNodesResult,
-  CreateNodesV2,
+  CreateNodes,
   detectPackageManager,
   joinPathFragments,
   NxJsonConfiguration,
@@ -54,7 +54,7 @@ function writeTargetsToCache(
   });
 }
 
-export const createNodes: CreateNodesV2<ReactNativePluginOptions> = [
+export const createNodes: CreateNodes<ReactNativePluginOptions> = [
   '**/app.{json,config.js,config.ts}',
   async (configFiles, options, context) => {
     const optionsHash = hashObject(options);
@@ -83,7 +83,7 @@ export const createNodesV2 = createNodes;
 async function createNodesInternal(
   configFile: string,
   options: ReactNativePluginOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   targetsCache: Record<
     string,
     Record<string, TargetConfiguration<ReactNativePluginOptions>>
@@ -135,7 +135,7 @@ async function createNodesInternal(
 function buildReactNativeTargets(
   projectRoot: string,
   options: ReactNativePluginOptions,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ) {
   const namedInputs = getNamedInputs(projectRoot, context);
 
@@ -196,7 +196,7 @@ function buildReactNativeTargets(
 
 function getAppConfig(
   configFilePath: string,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ): Promise<any> {
   const resolvedPath = join(context.workspaceRoot, configFilePath);
 

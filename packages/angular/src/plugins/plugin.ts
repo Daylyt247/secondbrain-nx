@@ -1,8 +1,8 @@
 import {
-  type CreateNodesContextV2,
+  type CreateNodesContext,
   createNodesFromFiles,
   type CreateNodesResult,
-  type CreateNodesV2,
+  type CreateNodes,
   detectPackageManager,
   getPackageManagerCommand,
   type ProjectConfiguration,
@@ -91,7 +91,7 @@ function writeProjectsToCache(
   writeJsonFile(cachePath, results);
 }
 
-export const createNodesV2: CreateNodesV2<AngularPluginOptions> = [
+export const createNodes: CreateNodes<AngularPluginOptions> = [
   '**/angular.json',
   async (configFiles, options, context) => {
     const optionsHash = hashObject(options);
@@ -117,10 +117,15 @@ export const createNodesV2: CreateNodesV2<AngularPluginOptions> = [
   },
 ];
 
+/**
+ * @deprecated Use {@link createNodes} instead. This will be removed in Nx 24.
+ */
+export const createNodesV2 = createNodes;
+
 async function createNodesInternal(
   configFilePath: string,
   options: {} | undefined,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   projectsCache: Record<string, AngularProjects>,
   pmc: ReturnType<typeof getPackageManagerCommand>
 ): Promise<CreateNodesResult> {
@@ -156,7 +161,7 @@ async function buildAngularProjects(
   configFilePath: string,
   options: AngularPluginOptions,
   angularWorkspaceRoot: string,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   pmc: ReturnType<typeof getPackageManagerCommand>
 ): Promise<AngularProjects> {
   const projects: Record<string, AngularProjects[string] & { root: string }> =
@@ -322,7 +327,7 @@ function updateAppShellTarget(
   projects: AngularProjects,
   angularJson: AngularJson,
   angularWorkspaceRoot: string,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ): void {
   // it must exist since we collected it when processing it
   const target = projects[projectName].targets[targetName];
@@ -371,7 +376,7 @@ async function updateBuildTarget(
   targetName: string,
   target: TargetConfiguration,
   angularTarget: AngularTargetConfiguration,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   angularWorkspaceRoot: string,
   projectRoot: string,
   namedInputs: ReturnType<typeof getNamedInputs>
@@ -430,7 +435,7 @@ async function updateTestTarget(
   projectName: string,
   target: TargetConfiguration,
   angularTarget: AngularTargetConfiguration,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   angularWorkspaceRoot: string,
   projectRoot: string,
   namedInputs: ReturnType<typeof getNamedInputs>,
@@ -475,7 +480,7 @@ async function updateTestTarget(
 function updateServerTarget(
   target: TargetConfiguration,
   angularTarget: AngularTargetConfiguration,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   angularWorkspaceRoot: string,
   projectRoot: string,
   namedInputs: ReturnType<typeof getNamedInputs>
@@ -545,7 +550,7 @@ async function getNgPackagrOutputs(
   target: AngularTargetConfiguration,
   angularWorkspaceRoot: string,
   projectRoot: string,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ): Promise<string[]> {
   let ngPackageJsonPath = join(
     context.workspaceRoot,
@@ -610,7 +615,7 @@ function getKarmaTargetOutputs(
   target: AngularTargetConfiguration,
   angularWorkspaceRoot: string,
   projectRoot: string,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ): string[] {
   const defaultOutput = posix.join(
     '{workspaceRoot}',
@@ -679,7 +684,7 @@ async function getVitestTargetOutputs(
   target: AngularTargetConfiguration,
   angularWorkspaceRoot: string,
   projectRoot: string,
-  context: CreateNodesContextV2
+  context: CreateNodesContext
 ): Promise<string[]> {
   // https://github.com/angular/angular-cli/blob/d9cd609c5d13fe492b1f31973d9be518f8529387/packages/angular/build/src/builders/unit-test/runners/vitest/plugins.ts#L365
   const defaultOutput = posix.join(

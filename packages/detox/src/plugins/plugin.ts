@@ -1,8 +1,8 @@
 import {
-  CreateNodesContextV2,
+  CreateNodesContext,
   createNodesFromFiles,
   CreateNodesResult,
-  CreateNodesV2,
+  CreateNodes,
   detectPackageManager,
   getPackageManagerCommand,
   NxJsonConfiguration,
@@ -47,7 +47,7 @@ function writeTargetsToCache(
   });
 }
 
-export const createNodes: CreateNodesV2<DetoxPluginOptions> = [
+export const createNodes: CreateNodes<DetoxPluginOptions> = [
   '**/{detox.config,.detoxrc}.{json,js}',
   async (configFiles, options, context) => {
     const optionsHash = hashObject(options);
@@ -76,7 +76,7 @@ export const createNodesV2 = createNodes;
 async function createNodesInternal(
   configFile: string,
   options: DetoxPluginOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   targetsCache: Record<
     string,
     Record<string, TargetConfiguration<DetoxPluginOptions>>
@@ -107,7 +107,7 @@ async function createNodesInternal(
 function buildDetoxTargets(
   projectRoot: string,
   options: DetoxPluginOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   pmc: ReturnType<typeof getPackageManagerCommand>
 ) {
   const namedInputs = getNamedInputs(projectRoot, context);

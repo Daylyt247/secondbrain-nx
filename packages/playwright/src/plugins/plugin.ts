@@ -1,7 +1,7 @@
 import {
   createNodesFromFiles,
-  type CreateNodesContextV2,
-  type CreateNodesV2,
+  type CreateNodesContext,
+  type CreateNodes,
   detectPackageManager,
   getPackageManagerCommand,
   joinPathFragments,
@@ -39,7 +39,7 @@ interface NormalizedOptions {
 type PlaywrightTargets = Pick<ProjectConfiguration, 'targets' | 'metadata'>;
 
 const playwrightConfigGlob = '**/playwright.config.{js,ts,cjs,cts,mjs,mts}';
-export const createNodes: CreateNodesV2<PlaywrightPluginOptions> = [
+export const createNodes: CreateNodes<PlaywrightPluginOptions> = [
   playwrightConfigGlob,
   async (configFilePaths, options, context) => {
     const optionsHash = hashObject(options);
@@ -70,7 +70,7 @@ export const createNodesV2 = createNodes;
 async function createNodesInternal(
   configFilePath: string,
   options: PlaywrightPluginOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   pluginCache: PluginCache<PlaywrightTargets>,
   pmc: ReturnType<typeof getPackageManagerCommand>
 ) {
@@ -135,7 +135,7 @@ async function buildPlaywrightTargets(
   configFilePath: string,
   projectRoot: string,
   options: NormalizedOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   pmc: ReturnType<typeof getPackageManagerCommand>,
   externalTsconfigInputs: string[]
 ): Promise<PlaywrightTargets> {
@@ -377,7 +377,7 @@ async function buildPlaywrightTargets(
 }
 
 async function getAllTestFiles(opts: {
-  context: CreateNodesContextV2;
+  context: CreateNodesContext;
   path: string;
   config: PlaywrightTestConfig;
 }) {

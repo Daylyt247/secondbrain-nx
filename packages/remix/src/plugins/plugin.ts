@@ -2,9 +2,9 @@ import { workspaceDataDirectory } from 'nx/src/utils/cache-directory';
 import { hashObject } from 'nx/src/hasher/file-hasher';
 import {
   type CreateDependencies,
-  type CreateNodesContextV2,
+  type CreateNodesContext,
   createNodesFromFiles,
-  CreateNodesV2,
+  CreateNodes,
   detectPackageManager,
   getPackageManagerCommand,
   joinPathFragments,
@@ -58,7 +58,7 @@ export const createDependencies: CreateDependencies = () => {
 
 const remixConfigGlob = '**/{remix,vite}.config.{js,cjs,mjs,ts,cts,mts}';
 
-export const createNodes: CreateNodesV2<RemixPluginOptions> = [
+export const createNodes: CreateNodes<RemixPluginOptions> = [
   remixConfigGlob,
   async (configFilePaths, options, context) => {
     const optionsHash = hashObject(options);
@@ -93,7 +93,7 @@ export const createNodesV2 = createNodes;
 async function createNodesInternal(
   configFilePath: string,
   options: RemixPluginOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   targetsCache: Record<string, RemixTargets>,
   isUsingTsSolutionSetup: boolean,
   pmc: ReturnType<typeof getPackageManagerCommand>
@@ -158,7 +158,7 @@ async function buildRemixTargets(
   configFilePath: string,
   projectRoot: string,
   options: RemixPluginOptions,
-  context: CreateNodesContextV2,
+  context: CreateNodesContext,
   siblingFiles: string[],
   remixCompiler: RemixCompiler,
   isUsingTsSolutionSetup: boolean,
