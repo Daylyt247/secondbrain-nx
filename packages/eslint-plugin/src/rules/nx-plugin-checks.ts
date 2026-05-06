@@ -10,7 +10,7 @@ import {
   workspaceRoot,
 } from '@nx/devkit';
 import { getRootTsConfigPath } from '@nx/js';
-import { loadTsFile, registerTsProject } from '@nx/js/src/internal';
+import { loadTsFile } from '@nx/js/src/internal';
 import * as path from 'path';
 import { valid } from 'semver';
 import { readProjectGraph } from '../utils/project-graph-utils';
@@ -162,11 +162,6 @@ export default ESLintUtils.RuleCreator(() => ``)<Options, MessageIds>({
       )
     ) {
       return {};
-    }
-
-    if (!(global as any).tsProjectRegistered) {
-      registerTsProject(getRootTsConfigPath());
-      (global as any).tsProjectRegistered = true;
     }
 
     return {
@@ -677,8 +672,11 @@ export function checkIfIdentifierIsFunction(
   }
 
   // Fallback to require()
-  const m = filePath.endsWith('.ts')
-    ? loadTsFile(filePath, getRootTsConfigPath())
+  const rootTsconfigPath = filePath.endsWith('.ts')
+    ? getRootTsConfigPath()
+    : null;
+  const m = rootTsconfigPath
+    ? loadTsFile(filePath, rootTsconfigPath)
     : require(filePath);
   return identifier in m && typeof m[identifier] === 'function';
 }
