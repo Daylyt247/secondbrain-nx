@@ -50,6 +50,11 @@
       },
       "description": "Update the Jest snapshot guide link in `.snap` files from the legacy `https://goo.gl/fbAQLP` URL to `https://jestjs.io/docs/snapshot-testing`, which Jest v30 now requires.",
       "implementation": "./src/migrations/update-23-0-0/update-snapshot-guide-link"
+    },
+    "migrate-jest-executor-setup-file": {
+      "version": "23.0.0-beta.10",
+      "description": "Migrate the deprecated `setupFile` option of the `@nx/jest:jest` executor: push the file path into `setupFilesAfterEnv` in the project's Jest config and remove the option from `project.json` and `nx.json` target defaults.",
+      "implementation": "./src/migrations/update-23-0-0/migrate-jest-executor-setup-file"
     }
   },
   "packageJsonUpdates": {
