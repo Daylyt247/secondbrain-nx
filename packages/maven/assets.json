@@ -5,18 +5,18 @@
     { "glob": "**/schema.json", "input": "packages/maven/src" },
     { "glob": "@(generators|executors).json" },
     {
-      "glob": "**/*.jar",
+      "glob": "batch-runner.jar",
       "input": "packages/maven/batch-runner/target",
       "includeIgnoredFiles": true
     },
     {
-      "glob": "**/*.jar",
+      "glob": "maven3-adapter.jar",
       "input": "packages/maven/batch-runner-adapters/maven3/target",
       "output": "/nx-maven-adapters",
       "includeIgnoredFiles": true
     },
     {
-      "glob": "**/*.jar",
+      "glob": "maven4-adapter.jar",
       "input": "packages/maven/batch-runner-adapters/maven4/target",
       "output": "/nx-maven-adapters",
       "includeIgnoredFiles": true
