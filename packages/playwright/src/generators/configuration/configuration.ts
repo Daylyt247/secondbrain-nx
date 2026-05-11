@@ -9,7 +9,6 @@ import {
   logger,
   offsetFromRoot,
   output,
-  readJson,
   readNxJson,
   readProjectConfiguration,
   runTasksInSerial,
@@ -71,24 +70,30 @@ export async function configurationGeneratorInternal(
   const offsetFromProjectRoot = offsetFromRoot(projectConfig.root);
 
   const isTsSolutionSetup = isUsingTsSolutionSetup(tree);
-  // Detect ESM context for the generated config:
-  //   - The project's package.json type=module wins if present.
-  //   - Otherwise the workspace root package.json type wins.
-  //   - TS solution setup implies ESM (package manager workspaces with
-  //     project-level package.json type=module by convention).
-  // Native Node TypeScript stripping respects the package's effective module
-  // type, so __filename is undefined when the config loads as ESM. The
-  // template branches on this flag to emit `import.meta.dirname` instead.
-  const isEsmConfig =
-    isTsSolutionSetup || isPackageEsm(tree, projectConfig.root);
 
+  // Always emit `playwright.config.cts`. Node forces `.cts` to CommonJS
+  // regardless of workspace `type: "module"`, which sidesteps two failure
+  // modes Playwright + Nx native TS strip would otherwise hit on a `.ts`
+  // config:
+  //   - ESM-shape `.ts` (top-level `import`, `import.meta.dirname`):
+  //     Playwright's pirates loader compiles the file to CJS-style output
+  //     (`exports.X = ...`) but leaves `import.meta` lexically intact. Node
+  //     then re-detects ESM from the compiled output and runs it as ESM,
+  //     where `exports` is undefined - "exports is not defined in ES module
+  //     scope".
+  //   - CJS-shape `.ts` (`require()`, `module.exports`, `__filename`) in a
+  //     workspace with `type: "module"`: Node treats `.ts` as ESM where
+  //     `require`/`module.exports` aren't available.
+  // `.cts` dodges both: pirates always compiles `.cts` as CJS, and Node
+  // honors the extension for module-type detection. Playwright's
+  // configLoader auto-discovers `.cts` (extension list at
+  // configLoader.js:313 is `.ts/.js/.mts/.mjs/.cts/.cjs`).
   generateFiles(tree, path.join(__dirname, 'files'), projectConfig.root, {
     offsetFromRoot: offsetFromProjectRoot,
     projectRoot: projectConfig.root,
     webServerCommand: options.webServerCommand ?? null,
     webServerAddress: options.webServerAddress ?? null,
     isTsSolutionSetup,
-    isEsmConfig,
     ...options,
   });
   const tsconfigPath = joinPathFragments(projectConfig.root, 'tsconfig.json');
@@ -104,7 +109,7 @@ export async function configurationGeneratorInternal(
         include: [
           joinPathFragments(options.directory, '**/*.ts'),
           joinPathFragments(options.directory, '**/*.js'),
-          'playwright.config.ts',
+          'playwright.config.cts',
         ],
         exclude: ['out-tsc', 'test-output'],
       };
@@ -142,7 +147,7 @@ export async function configurationGeneratorInternal(
       include: [
         '**/*.ts',
         '**/*.js',
-        'playwright.config.ts',
+        'playwright.config.cts',
         'src/**/*.spec.ts',
         'src/**/*.spec.js',
         'src/**/*.test.ts',
@@ -398,8 +403,10 @@ Rename or remove the existing e2e target.`);
     executor: '@nx/playwright:playwright',
     outputs: [`{workspaceRoot}/dist/.playwright/${projectConfig.root}`],
     options: {
+      // Generator emits `playwright.config.cts` (`.cjs` for `--js`) so the
+      // legacy executor's `--config` flag must point at the same extension.
       config: `${projectConfig.root}/playwright.config.${
-        options.js ? 'cjs' : 'ts'
+        options.js ? 'cjs' : 'cts'
       }`,
     },
   };
@@ -430,21 +437,3 @@ function ignoreTestOutput(
 }
 
 export default configurationGenerator;
-
-function isPackageEsm(tree: Tree, projectRoot: string): boolean {
-  const projectPackageJsonPath = joinPathFragments(projectRoot, 'package.json');
-  if (tree.exists(projectPackageJsonPath)) {
-    const projectPackageJson = readJson<PackageJson>(
-      tree,
-      projectPackageJsonPath
-    );
-    if (projectPackageJson.type) {
-      return projectPackageJson.type === 'module';
-    }
-  }
-  if (tree.exists('package.json')) {
-    const rootPackageJson = readJson<PackageJson>(tree, 'package.json');
-    return rootPackageJson.type === 'module';
-  }
-  return false;
-}

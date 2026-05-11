@@ -4,7 +4,7 @@ exports[`React:CypressComponentTestConfiguration should generate cypress compone
 "import { nxComponentTestingPreset } from '@nx/react/plugins/component-testing';
 import { defineConfig } from 'cypress';
 export default defineConfig({
-  component: nxComponentTestingPreset(__filename, { bundler: 'vite' }),
+  component: nxComponentTestingPreset(import.meta.dirname, { bundler: 'vite' }),
 });
 "
 `;
@@ -13,7 +13,7 @@ exports[`React:CypressComponentTestConfiguration should generate cypress compone
 "import { nxComponentTestingPreset } from '@nx/react/plugins/component-testing';
 import { defineConfig } from 'cypress';
 export default defineConfig({
-  component: nxComponentTestingPreset(__filename, { bundler: 'vite' }),
+  component: nxComponentTestingPreset(import.meta.dirname, { bundler: 'vite' }),
 });
 "
 `;
@@ -22,7 +22,7 @@ exports[`React:CypressComponentTestConfiguration should generate cypress compone
 "import { nxComponentTestingPreset } from '@nx/react/plugins/component-testing';
 import { defineConfig } from 'cypress';
 export default defineConfig({
-  component: nxComponentTestingPreset(__filename),
+  component: nxComponentTestingPreset(import.meta.dirname),
 });
 "
 `;
@@ -31,7 +31,7 @@ exports[`React:CypressComponentTestConfiguration should generate cypress config 
 "import { nxComponentTestingPreset } from '@nx/react/plugins/component-testing';
 import { defineConfig } from 'cypress';
 export default defineConfig({
-  component: nxComponentTestingPreset(__filename, { bundler: 'vite' }),
+  component: nxComponentTestingPreset(import.meta.dirname, { bundler: 'vite' }),
 });
 "
 `;

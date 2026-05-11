@@ -535,7 +535,7 @@ describe('React:CypressComponentTestConfiguration', () => {
       "import { nxComponentTestingPreset } from '@nx/react/plugins/component-testing';
       import { defineConfig } from 'cypress';
       export default defineConfig({
-        component: nxComponentTestingPreset(__filename, { bundler: 'vite' }),
+        component: nxComponentTestingPreset(import.meta.dirname, { bundler: 'vite' }),
       });
       "
     `);

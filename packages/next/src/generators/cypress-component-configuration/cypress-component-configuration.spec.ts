@@ -46,7 +46,7 @@ describe('cypress-component-configuration generator', () => {
       "import { nxComponentTestingPreset } from '@nx/next/plugins/component-testing';
       import { defineConfig } from 'cypress';
       export default defineConfig({
-        component: nxComponentTestingPreset(__filename),
+        component: nxComponentTestingPreset(import.meta.dirname),
       });
       "
     `);
@@ -167,7 +167,7 @@ describe('cypress-component-configuration generator', () => {
       "import { nxComponentTestingPreset } from '@nx/next/plugins/component-testing';
       import { defineConfig } from 'cypress';
       export default defineConfig({
-        component: nxComponentTestingPreset(__filename),
+        component: nxComponentTestingPreset(import.meta.dirname),
       });
       "
     `);
