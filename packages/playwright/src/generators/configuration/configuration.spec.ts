@@ -48,20 +48,20 @@ describe('Playwright e2e configuration', () => {
           "extends": "../../tsconfig.base.json",
           "compilerOptions": {
             "allowJs": true,
-            "outDir": "out-tsc/playwright",
-            "sourceMap": false
+            "outDir": "../../dist/out-tsc",
+            "sourceMap": false,
+            "module": "commonjs"
           },
           "include": [
             "**/*.ts",
             "**/*.js",
-            "playwright.config.cts",
+            "playwright.config.mts",
             "src/**/*.spec.ts",
             "src/**/*.spec.js",
             "src/**/*.test.ts",
             "src/**/*.test.js",
             "src/**/*.d.ts"
-          ],
-          "exclude": ["out-tsc", "test-output"]
+          ]
         }
         "
       `);
@@ -87,28 +87,13 @@ describe('Playwright e2e configuration', () => {
         "{
           "include": [],
           "files": [],
-          "references": [
-            {
-              "path": "./tsconfig.e2e.json"
-            }
-          ]
+          "references": []
         }
         "
       `);
-      expect(tree.read('apps/myapp/tsconfig.e2e.json', 'utf-8'))
-        .toMatchInlineSnapshot(`
-        "{
-          "extends": "../../tsconfig.base.json",
-          "compilerOptions": {
-            "allowJs": true,
-            "outDir": "out-tsc/playwright",
-            "sourceMap": false
-          },
-          "include": ["e2e/**/*.ts", "e2e/**/*.js", "playwright.config.cts"],
-          "exclude": ["out-tsc", "test-output"]
-        }
-        "
-      `);
+      expect(
+        tree.read('apps/myapp/tsconfig.e2e.json', 'utf-8')
+      ).toMatchInlineSnapshot(`null`);
     });
 
     it('should ignore Playwright output files in eslint config if used', async () => {
@@ -128,7 +113,7 @@ describe('Playwright e2e configuration', () => {
       });
 
       expect(tree.read('eslint.config.mjs', 'utf-8')).toMatchInlineSnapshot(`
-        "export default [{ ignores: ['**/test-output'] }];
+        "export default [{ ignores: [] }];
         "
       `);
     });

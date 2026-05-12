@@ -156,27 +156,26 @@ describe('app', () => {
       // Jest's `-u` machinery can't round-trip an inline snapshot whose
       // expected value is a runtime-built template variable.
       const playwrightConfig = appTree.read(
-        'my-app-e2e/playwright.config.cts',
+        'my-app-e2e/playwright.config.mts',
         'utf-8'
       );
       expect(playwrightConfig).toContain(
-        `const { defineConfig, devices } = require('@playwright/test');`
+        `import { defineConfig, devices } from '@playwright/test';`
       );
       expect(playwrightConfig).toContain(
-        `const { nxE2EPreset } = require('@nx/playwright/preset');`
+        `import { nxE2EPreset } from '@nx/playwright/preset';`
       );
       expect(playwrightConfig).toContain(
-        `...nxE2EPreset(__filename, { testDir: './src' })`
+        `...nxE2EPreset(import.meta.dirname, { testDir: './src' })`
       );
-      expect(playwrightConfig).toContain(`module.exports = defineConfig`);
+      expect(playwrightConfig).toContain(`export default defineConfig`);
       expect(playwrightConfig).toContain(
         `command: '${packageCmd} nx run my-app:preview'`
       );
-      // ESM-only constructs that would break Playwright's pirates loader
-      // when the file is detected as ESM. The literal "import.meta" appears
-      // in the template's doc comment - check for the expression instead.
-      expect(playwrightConfig).not.toContain('import.meta.dirname');
-      expect(playwrightConfig).not.toContain('export default');
+      // CJS-only constructs that would break under Node's native ESM
+      // module-type detection for .mts.
+      expect(playwrightConfig).not.toContain('__filename');
+      expect(playwrightConfig).not.toContain('module.exports');
     });
 
     it('should use preview vite types to tsconfigs', async () => {
@@ -432,7 +431,7 @@ describe('app', () => {
       });
 
       expect(
-        appTree.exists('my-dir/my-app-e2e/playwright.config.cts')
+        appTree.exists('my-dir/my-app-e2e/playwright.config.mts')
       ).toBeTruthy();
       expect(
         appTree.exists('my-dir/my-app-e2e/src/example.spec.ts')
@@ -566,7 +565,7 @@ describe('app', () => {
         e2eTestRunner: 'playwright',
       });
 
-      expect(appTree.exists('my-app-e2e/playwright.config.cts')).toBeTruthy();
+      expect(appTree.exists('my-app-e2e/playwright.config.mts')).toBeTruthy();
       expect(appTree.exists('my-app-e2e/src/example.spec.ts')).toBeTruthy();
     });
   });
@@ -1058,7 +1057,7 @@ describe('app', () => {
         e2eTestRunner: 'playwright',
       });
 
-      expect(appTree.exists('e2e/playwright.config.cts')).toBeTruthy();
+      expect(appTree.exists('e2e/playwright.config.mts')).toBeTruthy();
       expect(appTree.exists('e2e/src/example.spec.ts')).toBeTruthy();
     });
   });
@@ -1187,17 +1186,9 @@ describe('app', () => {
         useProjectJson: false,
       });
 
-      expect(readJson(appTree, 'tsconfig.json').references)
-        .toMatchInlineSnapshot(`
-        [
-          {
-            "path": "./myapp-e2e",
-          },
-          {
-            "path": "./myapp",
-          },
-        ]
-      `);
+      expect(
+        readJson(appTree, 'tsconfig.json').references
+      ).toMatchInlineSnapshot(`[]`);
       const packageJson = readJson(appTree, 'myapp/package.json');
       expect(packageJson.name).toBe('@proj/myapp');
       expect(packageJson.nx).toBeUndefined();
@@ -1332,7 +1323,7 @@ describe('app', () => {
           "include": [
             "**/*.ts",
             "**/*.js",
-            "playwright.config.cts",
+            "playwright.config.mts",
             "src/**/*.spec.ts",
             "src/**/*.spec.js",
             "src/**/*.test.ts",
@@ -1489,7 +1480,7 @@ describe('app', () => {
 
         module.exports = {
           output: {
-            path: join(__dirname, 'dist'),
+            path: join(__dirname, '../../dist/apps/my-app'),
             clean: true,
           },
           devServer: {
@@ -1870,7 +1861,7 @@ describe('app', () => {
       });
 
       const playwrightConfig = appTree.read(
-        'my-app-e2e/playwright.config.cts',
+        'my-app-e2e/playwright.config.mts',
         'utf-8'
       );
       expect(playwrightConfig).toContain("|| 'http://localhost:9000'");
@@ -1903,7 +1894,7 @@ describe('app', () => {
       });
 
       const playwrightConfig = appTree.read(
-        'my-app-e2e/playwright.config.cts',
+        'my-app-e2e/playwright.config.mts',
         'utf-8'
       );
       expect(playwrightConfig).toContain("|| 'http://localhost:9000'");
@@ -1936,7 +1927,7 @@ describe('app', () => {
       });
 
       const playwrightConfig = appTree.read(
-        'my-app-e2e/playwright.config.cts',
+        'my-app-e2e/playwright.config.mts',
         'utf-8'
       );
       expect(playwrightConfig).toContain("|| 'http://localhost:9000'");

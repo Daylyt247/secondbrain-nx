@@ -85,19 +85,16 @@ describe('native Node.js TypeScript support', () => {
     );
 
     it(
-      'should compute project graph when loading playwright.config.cts',
+      'should compute project graph when loading playwright.config.mts',
       () => {
-        // Regression: the playwright generator emits `playwright.config.cts`
-        // (CJS-shape: `require()`, `module.exports`, `__filename`) so the
-        // file is forced to CommonJS regardless of workspace `type:
-        // "module"`. A `.ts` config with ESM syntax (top-level `import` +
-        // `import.meta.dirname`) loads fine via Nx's native strip ESM
-        // detection but blows up in Playwright's pirates loader, which
-        // compiles to CJS-shape (`exports.X = ...`) yet leaves
-        // `import.meta` intact - Node then re-detects ESM from the
-        // compiled output and errors on
-        // "exports is not defined in ES module scope". `.cts` sidesteps
-        // both: pirates forces CJS, Node honors the extension.
+        // Regression: the playwright generator emits `playwright.config.mts`
+        // (ESM-shape: top-level `import`, `import.meta.dirname`,
+        // `export default`). Node forces `.mts` to ESM regardless of
+        // workspace `type`. Playwright's `requireOrImport` detects the
+        // file as a module and routes through dynamic `import()`,
+        // bypassing the pirates CJS-compile path that breaks ESM-shape
+        // `.ts` configs. Nx's native strip loads `.mts` directly via
+        // `loadTsFile`.
         const app = uniq('app');
         runCLI(
           `generate @nx/web:app ${app} --unitTestRunner=none --bundler=vite --e2eTestRunner=none --style=css --no-interactive`
@@ -105,16 +102,13 @@ describe('native Node.js TypeScript support', () => {
         runCLI(
           `generate @nx/playwright:configuration --project ${app} --webServerCommand="echo test" --webServerAddress="http://localhost:4200"`
         );
-        checkFilesExist(`${app}/playwright.config.cts`);
+        checkFilesExist(`${app}/playwright.config.mts`);
 
-        // Confirm the generator chose `.cts` and CJS shape. (`import.meta`
-        // appears literally in the template's doc comment explaining the
-        // .cts choice, so we check for the expression form instead.)
-        const cfg = readFile(`${app}/playwright.config.cts`);
-        expect(cfg).toContain('module.exports = defineConfig');
-        expect(cfg).toContain('__filename');
-        expect(cfg).not.toContain('import.meta.dirname');
-        expect(cfg).not.toContain('export default');
+        const cfg = readFile(`${app}/playwright.config.mts`);
+        expect(cfg).toContain('export default defineConfig');
+        expect(cfg).toContain('import.meta.dirname');
+        expect(cfg).not.toContain('__filename');
+        expect(cfg).not.toContain('module.exports');
 
         const { graph } = runGraph();
 

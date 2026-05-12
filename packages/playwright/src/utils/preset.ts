@@ -41,11 +41,11 @@ export interface NxPlaywrightOptions {
  *
  * you can easily extend this within your playwright config via spreading the preset
  * @example
- * // Nx generates `playwright.config.cts` (CommonJS). Pass `__filename`.
- * // For hand-written ESM configs (`.mts` or `.ts` in `type: "module"`
- * // workspaces), pass `import.meta.dirname` instead.
- * module.exports = defineConfig({
- *   ...nxE2EPreset(__filename, options)
+ * // Nx generates `playwright.config.mts` (ESM). Pass `import.meta.dirname`.
+ * // For hand-written CJS configs (`.cts` or `.ts` outside a `type: "module"`
+ * // workspace), pass `__filename` instead.
+ * export default defineConfig({
+ *   ...nxE2EPreset(import.meta.dirname, options)
  *   // add your own config here
  * })
  *

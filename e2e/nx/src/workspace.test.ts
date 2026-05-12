@@ -174,7 +174,7 @@ describe('@nx/workspace:convert-to-monorepo', () => {
 
     checkFilesExist(
       `apps/${reactApp}/src/main.tsx`,
-      `apps/e2e/playwright.config.cts`
+      `apps/e2e/playwright.config.mts`
     );
 
     expect(() => runCLI(`build ${reactApp}`)).not.toThrow();
