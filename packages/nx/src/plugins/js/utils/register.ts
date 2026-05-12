@@ -524,6 +524,17 @@ export function isTsEsmSyntaxError(err: unknown, filePath: string): boolean {
   );
 }
 
+export function isTsEsmNamedExportLinkageError(
+  err: unknown,
+  filePath: string
+): boolean {
+  if (!(err instanceof SyntaxError)) return false;
+  return (
+    (filePath.endsWith('.ts') || filePath.endsWith('.mts')) &&
+    err.message.includes('does not provide an export named')
+  );
+}
+
 /**
  * Hint appended to errors that the lazy fallback couldn't recover from.
  * Points users at the env opt-out for cases native strip can't reach (e.g.
@@ -663,12 +674,15 @@ export function loadTsFile<T = any>(
         //     CJS. swc/ts-node preserves the pre-v23 behavior for these files.
         //   - ReferenceError from Node treating a `.ts`/`.mts` config as ESM
         //     when it contains legacy CJS `require`.
+        //   - SyntaxError from native ESM linkage when generated TS config
+        //     imports a type-only symbol as a runtime named export.
         if (
           (isNativeTypeStripError(err) ||
             isModuleNotFoundError(err) ||
             isCjsSyntaxError(err, filePath) ||
             isTsEsmSyntaxError(err, filePath) ||
-            isRequireInEsmScopeError(err, filePath)) &&
+            isRequireInEsmScopeError(err, filePath) ||
+            isTsEsmNamedExportLinkageError(err, filePath)) &&
           !transpilerRegistered
         ) {
           logFallback(
@@ -682,7 +696,9 @@ export function loadTsFile<T = any>(
                   ? 'ESM syntax in TypeScript file parsed as CommonJS; falling back to swc/ts-node + tsconfig-paths.'
                   : isRequireInEsmScopeError(err, filePath)
                     ? 'CommonJS require in native ESM TypeScript file; falling back to swc/ts-node + tsconfig-paths.'
-                    : 'Module not found after tsconfig-paths; falling back to swc/ts-node + tsconfig-paths.'
+                    : isTsEsmNamedExportLinkageError(err, filePath)
+                      ? 'Native ESM named export linkage failed; falling back to swc/ts-node + tsconfig-paths.'
+                      : 'Module not found after tsconfig-paths; falling back to swc/ts-node + tsconfig-paths.'
           );
           registerTranspilerFallback(err);
           continue;

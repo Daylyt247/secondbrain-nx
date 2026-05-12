@@ -4,6 +4,7 @@ import {
   isCjsSyntaxError,
   isNativeTypeStripError,
   isRequireInEsmScopeError,
+  isTsEsmNamedExportLinkageError,
   isTsEsmSyntaxError,
 } from './register';
 
@@ -158,5 +159,50 @@ describe('isTsEsmSyntaxError', () => {
       isTsEsmSyntaxError(new SyntaxError('Unexpected token'), '/x.ts')
     ).toBe(false);
     expect(isTsEsmSyntaxError(new Error('boom'), '/x.ts')).toBe(false);
+  });
+});
+
+describe('isTsEsmNamedExportLinkageError', () => {
+  it('returns true for named export SyntaxError thrown while loading a .ts file as ESM', () => {
+    expect(
+      isTsEsmNamedExportLinkageError(
+        new SyntaxError(
+          "The requested module '@nx/module-federation' does not provide an export named 'ModuleFederationConfig'"
+        ),
+        '/abs/path/module-federation.config.ts'
+      )
+    ).toBe(true);
+  });
+
+  it('returns true for named export SyntaxError thrown while loading a .mts file as ESM', () => {
+    expect(
+      isTsEsmNamedExportLinkageError(
+        new SyntaxError(
+          "The requested module './module-federation.config' does not provide an export named 'config'"
+        ),
+        '/abs/path/module-federation.config.mts'
+      )
+    ).toBe(true);
+  });
+
+  it('returns false for non-TS extensions', () => {
+    const err = new SyntaxError(
+      "The requested module './x' does not provide an export named 'y'"
+    );
+    expect(isTsEsmNamedExportLinkageError(err, '/abs/config.js')).toBe(false);
+    expect(isTsEsmNamedExportLinkageError(err, '/abs/config.cjs')).toBe(false);
+  });
+
+  it('returns false for unrelated errors', () => {
+    expect(
+      isTsEsmNamedExportLinkageError(
+        new SyntaxError('Unexpected token'),
+        '/x.ts'
+      )
+    ).toBe(false);
+    expect(isTsEsmNamedExportLinkageError(new Error('boom'), '/x.ts')).toBe(
+      false
+    );
+    expect(isTsEsmNamedExportLinkageError(null, '/x.ts')).toBe(false);
   });
 });
