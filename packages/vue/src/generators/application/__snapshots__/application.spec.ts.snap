@@ -82,11 +82,11 @@ describe('App', () => {
 `;
 
 exports[`application generator should set up project correctly for cypress 5`] = `
-"import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset.js';
-import { defineConfig } from 'cypress';
-export default defineConfig({
+"const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+const { defineConfig } = require('cypress');
+module.exports = defineConfig({
   e2e: {
-    ...nxE2EPreset(import.meta.dirname, {
+    ...nxE2EPreset(__filename, {
       cypressDir: 'src',
       bundler: 'vite',
       webServerCommands: {

@@ -44,9 +44,9 @@ describe('cypress-component-configuration generator', () => {
     expect(readJson(tree, 'demo/cypress/tsconfig.json')).toMatchSnapshot();
     expect(tree.read('demo/cypress.config.ts', 'utf-8')).toMatchInlineSnapshot(`
       "import { nxComponentTestingPreset } from '@nx/next/plugins/component-testing';
-      import { defineConfig } from 'cypress';
-      export default defineConfig({
-        component: nxComponentTestingPreset(import.meta.dirname),
+      const { defineConfig } = require('cypress');
+      module.exports = defineConfig({
+        component: nxComponentTestingPreset(__filename),
       });
       "
     `);
@@ -165,9 +165,9 @@ describe('cypress-component-configuration generator', () => {
     expect(readJson(tree, 'demo/cypress/tsconfig.json')).toMatchSnapshot();
     expect(tree.read('demo/cypress.config.ts', 'utf-8')).toMatchInlineSnapshot(`
       "import { nxComponentTestingPreset } from '@nx/next/plugins/component-testing';
-      import { defineConfig } from 'cypress';
-      export default defineConfig({
-        component: nxComponentTestingPreset(import.meta.dirname),
+      const { defineConfig } = require('cypress');
+      module.exports = defineConfig({
+        component: nxComponentTestingPreset(__filename),
       });
       "
     `);

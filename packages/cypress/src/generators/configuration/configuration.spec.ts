@@ -679,12 +679,10 @@ export default defineConfig({
       expect(tree.read('libs/my-lib/src/tsconfig.json', 'utf-8'))
         .toMatchInlineSnapshot(`
         "{
-          "extends": "../tsconfig.json",
+          "extends": "../../../tsconfig.base.json",
           "compilerOptions": {
-            "moduleResolution": "node10",
+            "outDir": "out-tsc/cypress",
             "allowJs": true,
-            "outDir": "../../dist/out-tsc",
-            "module": "commonjs",
             "types": ["cypress", "node"],
             "sourceMap": false
           },
@@ -695,7 +693,8 @@ export default defineConfig({
             "../**/*.cy.ts",
             "../**/*.cy.js",
             "../**/*.d.ts"
-          ]
+          ],
+          "exclude": ["out-tsc", "test-output"]
         }
         "
       `);

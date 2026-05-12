@@ -174,11 +174,11 @@ describe('app', () => {
       });
       expect(tree.read('cool-app-e2e/cypress.config.ts', 'utf-8'))
         .toMatchInlineSnapshot(`
-        "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset.js';
-        import { defineConfig } from 'cypress';
-        export default defineConfig({
+        "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+        const { defineConfig } = require('cypress');
+        module.exports = defineConfig({
           e2e: {
-            ...nxE2EPreset(import.meta.dirname, {
+            ...nxE2EPreset(__filename, {
               cypressDir: 'src',
               bundler: 'vite',
               webServerCommands: {
@@ -205,11 +205,11 @@ describe('app', () => {
       });
       expect(tree.read('cool-app-e2e/cypress.config.ts', 'utf-8'))
         .toMatchInlineSnapshot(`
-        "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset.js';
-        import { defineConfig } from 'cypress';
-        export default defineConfig({
+        "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+        const { defineConfig } = require('cypress');
+        module.exports = defineConfig({
           e2e: {
-            ...nxE2EPreset(import.meta.dirname, {
+            ...nxE2EPreset(__filename, {
               cypressDir: 'src',
               webServerCommands: {
                 default: 'npx nx run cool-app:serve',
