@@ -49,5 +49,3 @@ export { handleImport } from './utils/handle-import';
 export { PluginCache, safeWriteFileCache } from './utils/plugin-cache-utils';
 export { emitPluginWorkerLog } from './project-graph/plugins/isolation/worker-streaming';
 export { HashPlanInspector } from './hasher/hash-plan-inspector';
-export type { TaskFileResolver } from './hasher/task-file-resolver';
-export { createTaskFileResolver } from './hasher/task-file-resolver';
