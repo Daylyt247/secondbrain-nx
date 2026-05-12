@@ -533,9 +533,9 @@ describe('React:CypressComponentTestConfiguration', () => {
     const config = tree.read('some-lib/cypress.config.ts', 'utf-8');
     expect(config).toMatchInlineSnapshot(`
       "import { nxComponentTestingPreset } from '@nx/react/plugins/component-testing';
-      import { defineConfig } from 'cypress';
-      export default defineConfig({
-        component: nxComponentTestingPreset(import.meta.dirname, { bundler: 'vite' }),
+      const { defineConfig } = require('cypress');
+      module.exports = defineConfig({
+        component: nxComponentTestingPreset(__filename, { bundler: 'vite' }),
       });
       "
     `);

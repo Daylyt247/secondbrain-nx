@@ -48,9 +48,8 @@ describe('Playwright e2e configuration', () => {
           "extends": "../../tsconfig.base.json",
           "compilerOptions": {
             "allowJs": true,
-            "outDir": "../../dist/out-tsc",
-            "sourceMap": false,
-            "module": "commonjs"
+            "outDir": "out-tsc/playwright",
+            "sourceMap": false
           },
           "include": [
             "**/*.ts",
@@ -61,7 +60,8 @@ describe('Playwright e2e configuration', () => {
             "src/**/*.test.ts",
             "src/**/*.test.js",
             "src/**/*.d.ts"
-          ]
+          ],
+          "exclude": ["out-tsc", "test-output"]
         }
         "
       `);
@@ -87,13 +87,28 @@ describe('Playwright e2e configuration', () => {
         "{
           "include": [],
           "files": [],
-          "references": []
+          "references": [
+            {
+              "path": "./tsconfig.e2e.json"
+            }
+          ]
         }
         "
       `);
-      expect(
-        tree.read('apps/myapp/tsconfig.e2e.json', 'utf-8')
-      ).toMatchInlineSnapshot(`null`);
+      expect(tree.read('apps/myapp/tsconfig.e2e.json', 'utf-8'))
+        .toMatchInlineSnapshot(`
+        "{
+          "extends": "../../tsconfig.base.json",
+          "compilerOptions": {
+            "allowJs": true,
+            "outDir": "out-tsc/playwright",
+            "sourceMap": false
+          },
+          "include": ["e2e/**/*.ts", "e2e/**/*.js", "playwright.config.mts"],
+          "exclude": ["out-tsc", "test-output"]
+        }
+        "
+      `);
     });
 
     it('should ignore Playwright output files in eslint config if used', async () => {
@@ -113,7 +128,7 @@ describe('Playwright e2e configuration', () => {
       });
 
       expect(tree.read('eslint.config.mjs', 'utf-8')).toMatchInlineSnapshot(`
-        "export default [{ ignores: [] }];
+        "export default [{ ignores: ['**/test-output'] }];
         "
       `);
     });

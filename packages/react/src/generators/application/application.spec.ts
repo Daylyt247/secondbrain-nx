@@ -115,7 +115,7 @@ describe('app', () => {
         'utf-8'
       );
       expect(cypressConfig).toContain(
-        `import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset.js'`
+        `const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset.js')`
       );
       expect(cypressConfig).toContain(`import { defineConfig } from 'cypress'`);
       expect(cypressConfig).toContain(`...nxE2EPreset(import.meta.dirname, {`);
@@ -1186,9 +1186,17 @@ describe('app', () => {
         useProjectJson: false,
       });
 
-      expect(
-        readJson(appTree, 'tsconfig.json').references
-      ).toMatchInlineSnapshot(`[]`);
+      expect(readJson(appTree, 'tsconfig.json').references)
+        .toMatchInlineSnapshot(`
+        [
+          {
+            "path": "./myapp-e2e",
+          },
+          {
+            "path": "./myapp",
+          },
+        ]
+      `);
       const packageJson = readJson(appTree, 'myapp/package.json');
       expect(packageJson.name).toBe('@proj/myapp');
       expect(packageJson.nx).toBeUndefined();
@@ -1480,7 +1488,7 @@ describe('app', () => {
 
         module.exports = {
           output: {
-            path: join(__dirname, '../../dist/apps/my-app'),
+            path: join(__dirname, 'dist'),
             clean: true,
           },
           devServer: {
