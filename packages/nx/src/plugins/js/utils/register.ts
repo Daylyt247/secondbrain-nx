@@ -505,6 +505,25 @@ export function isCjsSyntaxError(err: unknown, filePath: string): boolean {
   return filePath.endsWith('.cts') || filePath.endsWith('.cjs');
 }
 
+export function isRequireInEsmScopeError(
+  err: unknown,
+  filePath: string
+): boolean {
+  if (!(err instanceof ReferenceError)) return false;
+  return (
+    (filePath.endsWith('.ts') || filePath.endsWith('.mts')) &&
+    err.message.includes('require is not defined in ES module scope')
+  );
+}
+
+export function isTsEsmSyntaxError(err: unknown, filePath: string): boolean {
+  if (!(err instanceof SyntaxError)) return false;
+  return (
+    filePath.endsWith('.ts') &&
+    err.message.includes('Cannot use import statement outside a module')
+  );
+}
+
 /**
  * Hint appended to errors that the lazy fallback couldn't recover from.
  * Points users at the env opt-out for cases native strip can't reach (e.g.
@@ -640,10 +659,16 @@ export function loadTsFile<T = any>(
         //     (extensionless `./foo` -> `./foo.ts`)
         //   - SyntaxError in a `.cts`/`.cjs` file (ESM syntax in a forced-CJS
         //     file). swc-node compiles ESM->CJS regardless of extension.
+        //   - SyntaxError from Node parsing a `.ts` config with ESM syntax as
+        //     CJS. swc/ts-node preserves the pre-v23 behavior for these files.
+        //   - ReferenceError from Node treating a `.ts`/`.mts` config as ESM
+        //     when it contains legacy CJS `require`.
         if (
           (isNativeTypeStripError(err) ||
             isModuleNotFoundError(err) ||
-            isCjsSyntaxError(err, filePath)) &&
+            isCjsSyntaxError(err, filePath) ||
+            isTsEsmSyntaxError(err, filePath) ||
+            isRequireInEsmScopeError(err, filePath)) &&
           !transpilerRegistered
         ) {
           logFallback(
@@ -653,7 +678,11 @@ export function loadTsFile<T = any>(
               ? 'Native Node.js TypeScript stripping failed; falling back to swc/ts-node + tsconfig-paths.'
               : isCjsSyntaxError(err, filePath)
                 ? 'ESM syntax in forced-CJS file; falling back to swc/ts-node + tsconfig-paths.'
-                : 'Module not found after tsconfig-paths; falling back to swc/ts-node + tsconfig-paths.'
+                : isTsEsmSyntaxError(err, filePath)
+                  ? 'ESM syntax in TypeScript file parsed as CommonJS; falling back to swc/ts-node + tsconfig-paths.'
+                  : isRequireInEsmScopeError(err, filePath)
+                    ? 'CommonJS require in native ESM TypeScript file; falling back to swc/ts-node + tsconfig-paths.'
+                    : 'Module not found after tsconfig-paths; falling back to swc/ts-node + tsconfig-paths.'
           );
           registerTranspilerFallback(err);
           continue;
