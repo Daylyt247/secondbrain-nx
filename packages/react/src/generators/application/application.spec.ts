@@ -114,21 +114,25 @@ describe('app', () => {
         'my-app-e2e/cypress.config.ts',
         'utf-8'
       );
-      expect(cypressConfig).toContain(
-        `const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset')`
-      );
-      expect(cypressConfig).toContain(`import { defineConfig } from 'cypress'`);
-      expect(cypressConfig).toContain(`...nxE2EPreset(import.meta.dirname, {`);
-      expect(cypressConfig).toContain(`"cypressDir": "src"`);
-      expect(cypressConfig).toContain(`"bundler": "vite"`);
-      expect(cypressConfig).toContain(
-        `"default": "${packageCmd} nx run my-app:dev"`
-      );
-      expect(cypressConfig).toContain(
-        `"ciWebServerCommand": "${packageCmd} nx run my-app:preview"`
-      );
-      expect(cypressConfig).toContain(`"ciBaseUrl": "http://localhost:4300"`);
-      expect(cypressConfig).toContain(`baseUrl: 'http://localhost:4200'`);
+      expect(cypressConfig).toMatchInlineSnapshot(`
+        "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+        const { defineConfig } = require('cypress');
+        module.exports = defineConfig({
+            e2e: {
+                ...nxE2EPreset(__filename, {
+                    "cypressDir": "src",
+                    "bundler": "vite",
+                    "webServerCommands": {
+                        "default": "npx nx run my-app:dev",
+                        "production": "npx nx run my-app:preview"
+                    },
+                    "ciWebServerCommand": "npx nx run my-app:preview",
+                    "ciBaseUrl": "http://localhost:4300"
+                }),
+                baseUrl: 'http://localhost:4200'
+            }
+        });"
+      `);
     });
 
     it('should setup playwright correctly for vite', async () => {
@@ -159,23 +163,84 @@ describe('app', () => {
         'my-app-e2e/playwright.config.mts',
         'utf-8'
       );
-      expect(playwrightConfig).toContain(
-        `import { defineConfig, devices } from '@playwright/test';`
-      );
-      expect(playwrightConfig).toContain(
-        `import { nxE2EPreset } from '@nx/playwright/preset';`
-      );
-      expect(playwrightConfig).toContain(
-        `...nxE2EPreset(import.meta.dirname, { testDir: './src' })`
-      );
-      expect(playwrightConfig).toContain(`export default defineConfig`);
-      expect(playwrightConfig).toContain(
-        `command: '${packageCmd} nx run my-app:preview'`
-      );
-      // CJS-only constructs that would break under Node's native ESM
-      // module-type detection for .mts.
-      expect(playwrightConfig).not.toContain('__filename');
-      expect(playwrightConfig).not.toContain('module.exports');
+      expect(playwrightConfig).toMatchInlineSnapshot(`
+        "import { defineConfig, devices } from '@playwright/test';
+        import { nxE2EPreset } from '@nx/playwright/preset';
+        import { workspaceRoot } from '@nx/devkit';
+
+        // For CI, you may want to set BASE_URL to the deployed application.
+        const baseURL = process.env['BASE_URL'] || 'http://localhost:4300';
+
+        /**
+         * Read environment variables from file.
+         * https://github.com/motdotla/dotenv
+         */
+        // import 'dotenv/config';
+
+        /**
+         * See https://playwright.dev/docs/test-configuration.
+         *
+         * Generated as a .mts file so Node forces ESM regardless of workspace
+         * \`type\`. Playwright routes \`.mts\` through its ESM loader (dynamic import,
+         * bypassing the pirates CJS-compile path), and Nx's native TS strip loads
+         * \`.mts\` directly. Playwright's configLoader auto-discovers
+         * \`playwright.config.mts\` via its extension list
+         * (.ts/.js/.mts/.mjs/.cts/.cjs).
+         */
+        export default defineConfig({
+          ...nxE2EPreset(import.meta.dirname, { testDir: './src' }),
+          /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+          use: {
+            baseURL,
+            /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+            trace: 'on-first-retry',
+          },
+          /* Run your local dev server before starting the tests */
+          webServer: {
+            command: 'npx nx run my-app:preview',
+            url: 'http://localhost:4300',
+            reuseExistingServer: true,
+            cwd: workspaceRoot
+          },
+          projects: [
+            {
+              name: "chromium",
+              use: { ...devices["Desktop Chrome"] },
+            },
+
+            {
+              name: "firefox",
+              use: { ...devices["Desktop Firefox"] },
+            },
+
+            {
+              name: "webkit",
+              use: { ...devices["Desktop Safari"] },
+            },
+
+            // Uncomment for mobile browsers support
+            /* {
+              name: 'Mobile Chrome',
+              use: { ...devices['Pixel 5'] },
+            },
+            {
+              name: 'Mobile Safari',
+              use: { ...devices['iPhone 12'] },
+            }, */
+
+            // Uncomment for branded browsers
+            /* {
+              name: 'Microsoft Edge',
+              use: { ...devices['Desktop Edge'], channel: 'msedge' },
+            },
+            {
+              name: 'Google Chrome',
+              use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+            } */
+          ],
+        });
+        "
+      `);
     });
 
     it('should use preview vite types to tsconfigs', async () => {
