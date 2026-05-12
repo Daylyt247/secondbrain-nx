@@ -115,7 +115,7 @@ describe('app', () => {
         'utf-8'
       );
       expect(cypressConfig).toContain(
-        `const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset.js')`
+        `const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset')`
       );
       expect(cypressConfig).toContain(`import { defineConfig } from 'cypress'`);
       expect(cypressConfig).toContain(`...nxE2EPreset(import.meta.dirname, {`);
