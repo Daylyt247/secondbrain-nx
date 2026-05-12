@@ -3,8 +3,16 @@ import type { Plugin, ResolvedConfig } from 'vite';
 import { isDaemonEnabled, joinPathFragments, workspaceRoot } from '@nx/devkit';
 import { AssetGlob } from '@nx/js/src/utils/assets/assets';
 import { CopyAssetsHandler } from '@nx/js/src/utils/assets/copy-assets-handler';
+import { warnNxCopyAssetsPluginDeprecation } from '../src/utils/deprecation';
 
+/**
+ * @deprecated Will be removed in Nx v24. Use Vite's native `publicDir` option
+ * for static assets, or the `vite-plugin-static-copy` package for anything
+ * that needs glob-based copying. See
+ * https://nx.dev/docs/technologies/build-tools/vite/configure-vite for details.
+ */
 export function nxCopyAssetsPlugin(_assets: (string | AssetGlob)[]): Plugin {
+  warnNxCopyAssetsPluginDeprecation();
   let config: ResolvedConfig;
   let handler: CopyAssetsHandler;
   let dispose: () => void;
