@@ -48,11 +48,6 @@ async function loadTypeScriptModule(
     return await loadModuleByExtension(path, extension);
   }
 
-  // Hot-reload parity with loadCommonJS.
-  if (require.cache[path]) {
-    clearRequireCache();
-  }
-
   // loadTsFile was added in nx@23. @nx/devkit's peer range supports older
   // nx majors, so fall back to the legacy registerTsProject + require path
   // when loadTsFile isn't available on the host nx.
