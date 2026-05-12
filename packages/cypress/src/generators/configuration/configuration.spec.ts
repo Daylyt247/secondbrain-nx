@@ -41,11 +41,11 @@ describe('Cypress e2e configuration', () => {
     });
     expect(tree.read('apps/my-app/cypress.config.ts', 'utf-8'))
       .toMatchInlineSnapshot(`
-      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset.js';
-      import { defineConfig } from 'cypress';
-      export default defineConfig({
+      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+      const { defineConfig } = require('cypress');
+      module.exports = defineConfig({
         e2e: {
-          ...nxE2EPreset(import.meta.dirname, {
+          ...nxE2EPreset(__filename, {
             cypressDir: 'src',
             webServerCommands: {
               default: 'nx run my-app:serve',
@@ -99,11 +99,11 @@ describe('Cypress e2e configuration', () => {
 
     expect(tree.read('apps/my-app/cypress.config.ts', 'utf-8'))
       .toMatchInlineSnapshot(`
-      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset.js';
-      import { defineConfig } from 'cypress';
-      export default defineConfig({
+      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+      const { defineConfig } = require('cypress');
+      module.exports = defineConfig({
         e2e: {
-          ...nxE2EPreset(import.meta.dirname, {
+          ...nxE2EPreset(__filename, {
             cypressDir: 'src',
           }),
         },
@@ -167,11 +167,11 @@ describe('Cypress e2e configuration', () => {
     });
     expect(tree.read('libs/my-lib/cypress.config.ts', 'utf-8'))
       .toMatchInlineSnapshot(`
-      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset.js';
-      import { defineConfig } from 'cypress';
-      export default defineConfig({
+      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+      const { defineConfig } = require('cypress');
+      module.exports = defineConfig({
         e2e: {
-          ...nxE2EPreset(import.meta.dirname, {
+          ...nxE2EPreset(__filename, {
             cypressDir: 'cypress',
             webServerCommands: {
               default: 'nx run my-app:serve',
@@ -196,11 +196,11 @@ describe('Cypress e2e configuration', () => {
     assertCypressFiles(tree, 'apps/my-app/src');
     expect(tree.read('apps/my-app/cypress.config.ts', 'utf-8'))
       .toMatchInlineSnapshot(`
-      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset.js';
-      import { defineConfig } from 'cypress';
-      export default defineConfig({
+      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+      const { defineConfig } = require('cypress');
+      module.exports = defineConfig({
         e2e: {
-          ...nxE2EPreset(import.meta.dirname, {
+          ...nxE2EPreset(__filename, {
             cypressDir: 'src',
             webServerCommands: {
               default: 'nx run my-app:serve',
@@ -598,6 +598,38 @@ export default defineConfig({
     `);
   });
 
+  it('should emit ESM-shape cypress.config.ts in a type:module workspace', async () => {
+    // In type:module workspaces, the .ts config is evaluated as ESM by
+    // both Nx's plugin worker (native strip) and cypress runtime, so it
+    // must use `import`/`export default` + `import.meta.dirname`.
+    updateJson(tree, 'package.json', (json) => {
+      json.type = 'module';
+      return json;
+    });
+
+    addProject(tree, { name: 'my-lib', type: 'libs' });
+
+    await cypressE2EConfigurationGenerator(tree, {
+      project: 'my-lib',
+      baseUrl: 'http://localhost:4200',
+    });
+
+    expect(tree.read('libs/my-lib/cypress.config.ts', 'utf-8'))
+      .toMatchInlineSnapshot(`
+      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset.js';
+      import { defineConfig } from 'cypress';
+      export default defineConfig({
+        e2e: {
+          ...nxE2EPreset(import.meta.dirname, {
+            cypressDir: 'src',
+          }),
+          baseUrl: 'http://localhost:4200',
+        },
+      });
+      "
+    `);
+  });
+
   describe('TS Solution Setup', () => {
     beforeEach(() => {
       updateJson(tree, 'package.json', (json) => {
@@ -647,10 +679,12 @@ export default defineConfig({
       expect(tree.read('libs/my-lib/src/tsconfig.json', 'utf-8'))
         .toMatchInlineSnapshot(`
         "{
-          "extends": "../../../tsconfig.base.json",
+          "extends": "../tsconfig.json",
           "compilerOptions": {
-            "outDir": "out-tsc/cypress",
+            "moduleResolution": "node10",
             "allowJs": true,
+            "outDir": "../../dist/out-tsc",
+            "module": "commonjs",
             "types": ["cypress", "node"],
             "sourceMap": false
           },
@@ -661,8 +695,7 @@ export default defineConfig({
             "../**/*.cy.ts",
             "../**/*.cy.js",
             "../**/*.d.ts"
-          ],
-          "exclude": ["out-tsc", "test-output"]
+          ]
         }
         "
       `);

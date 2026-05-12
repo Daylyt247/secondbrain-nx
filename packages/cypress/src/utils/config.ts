@@ -45,11 +45,10 @@ export async function addDefaultE2EConfig(
   let updatedConfigContents = cyConfigContents;
 
   if (testingTypeConfig.length === 0) {
-    // CJS uses __filename (always defined). ESM has no __filename, so we
-    // pass `import.meta.dirname` (Node 21.2+ / always available on Nx 23
-    // supported Node versions). Native Node TypeScript stripping respects
-    // the package's effective module type, so the choice matters when the
-    // workspace (or project) is type=module.
+    // Match the base file's module shape: CJS uses `__filename`, ESM uses
+    // `import.meta.dirname`. The base template is selected to match the
+    // workspace's `type` field, so the shape detected here is consistent
+    // with how the file will actually be evaluated at runtime.
     const pathToConfig = isCommonJS ? '__filename' : 'import.meta.dirname';
     const configValue = `nxE2EPreset(${pathToConfig}, ${JSON.stringify(
       options,

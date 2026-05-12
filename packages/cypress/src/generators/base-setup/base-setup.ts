@@ -76,26 +76,18 @@ export function addBaseCypressSetup(
     templateVars
   );
 
+  const isEsm = isEsmProject(tree, projectConfig.root);
   if (options.js) {
-    if (isEsmProject(tree, projectConfig.root)) {
-      generateFiles(
-        tree,
-        join(__dirname, 'files/config-js-esm'),
-        projectConfig.root,
-        templateVars
-      );
-    } else {
-      generateFiles(
-        tree,
-        join(__dirname, 'files/config-js-cjs'),
-        projectConfig.root,
-        templateVars
-      );
-    }
+    generateFiles(
+      tree,
+      join(__dirname, isEsm ? 'files/config-js-esm' : 'files/config-js-cjs'),
+      projectConfig.root,
+      templateVars
+    );
   } else {
     generateFiles(
       tree,
-      join(__dirname, 'files/config-ts'),
+      join(__dirname, isEsm ? 'files/config-ts-esm' : 'files/config-ts-cjs'),
       projectConfig.root,
       templateVars
     );
