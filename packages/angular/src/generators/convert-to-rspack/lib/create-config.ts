@@ -22,12 +22,9 @@ export function createConfig(
         .join(',\n')
     : '';
 
-  // ESM-safe: `__dirname` is undefined when Node parses this `.ts` config as
-  // ESM under native type stripping. `import.meta.dirname` (Node 21.2+) is the
-  // ESM equivalent and works under CJS swc-node fallback too.
   const createConfigContents = `createConfig({
     options: {
-      root: import.meta.dirname,
+      root: __dirname,
       ${JSON.stringify(createConfigOptions, undefined, 2).slice(1, -1)}
     }
   }${hasConfigurations ? `, {${expandedConfigurationOptions}}` : ''});`;

@@ -68,7 +68,7 @@ describe('convert-to-rspack', () => {
 
       export default createConfig({
         options: {
-          root: import.meta.dirname,
+          root: __dirname,
 
           outputPath: {
             base: '../../dist/apps/app',
@@ -157,7 +157,7 @@ describe('convert-to-rspack', () => {
 
       export default createConfig({
         options: {
-          root: import.meta.dirname,
+          root: __dirname,
 
           outputPath: {
             base: '../../dist/apps/app',
@@ -240,7 +240,7 @@ describe('convert-to-rspack', () => {
 
       export default createConfig({
         options: {
-          root: import.meta.dirname,
+          root: __dirname,
 
           outputPath: {
             base: '../../dist/apps/app',
@@ -319,7 +319,7 @@ describe('convert-to-rspack', () => {
       export default createConfig(
         {
           options: {
-            root: import.meta.dirname,
+            root: __dirname,
 
             outputPath: {
               base: '../../dist/apps/app',
@@ -432,7 +432,7 @@ describe('convert-to-rspack', () => {
       export default async () => {
         const baseConfig = await createConfig({
           options: {
-            root: import.meta.dirname,
+            root: __dirname,
 
             outputPath: {
               base: '../../dist/apps/app',
@@ -557,7 +557,7 @@ describe('convert-to-rspack', () => {
       export default async () => {
         const baseConfig = await createConfig({
           options: {
-            root: import.meta.dirname,
+            root: __dirname,
 
             outputPath: {
               base: '../../dist/apps/app',

@@ -27,7 +27,7 @@ describe('createConfig', () => {
         
         export default createConfig({
           options: {
-            root: import.meta.dirname,
+            root: __dirname,
             
         "index": "src/index.html",
         "browser": "src/main.ts",
@@ -74,7 +74,7 @@ describe('createConfig', () => {
         
         export default createConfig({
           options: {
-            root: import.meta.dirname,
+            root: __dirname,
             
         "index": "src/index.html",
         "browser": "src/main.ts"
