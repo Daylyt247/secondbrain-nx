@@ -2,7 +2,6 @@ import {
   checkFilesExist,
   cleanupProject,
   newProject,
-  readFile,
   readJson,
   removeFile,
   runCLI,
@@ -87,14 +86,13 @@ describe('native Node.js TypeScript support', () => {
     it(
       'should compute project graph when loading playwright.config.mts',
       () => {
-        // Regression: the playwright generator emits `playwright.config.mts`
-        // (ESM-shape: top-level `import`, `import.meta.dirname`,
-        // `export default`). Node forces `.mts` to ESM regardless of
-        // workspace `type`. Playwright's `requireOrImport` detects the
-        // file as a module and routes through dynamic `import()`,
-        // bypassing the pirates CJS-compile path that breaks ESM-shape
-        // `.ts` configs. Nx's native strip loads `.mts` directly via
-        // `loadTsFile`.
+        // The playwright generator emits a `.mts` config (ESM-only:
+        // top-level `import`, `import.meta.dirname`, `export default`).
+        // Node forces `.mts` to ESM regardless of workspace `type`, so this
+        // exercises Nx's native strip path for `.mts` configs via
+        // `loadTsFile`. The full generator output is snapshotted in
+        // `packages/playwright/.../configuration.spec.ts`; here we only
+        // care that the loader can read it end-to-end.
         const app = uniq('app');
         runCLI(
           `generate @nx/web:app ${app} --unitTestRunner=none --bundler=vite --e2eTestRunner=none --style=css --no-interactive`
@@ -103,12 +101,6 @@ describe('native Node.js TypeScript support', () => {
           `generate @nx/playwright:configuration --project ${app} --webServerCommand="echo test" --webServerAddress="http://localhost:4200"`
         );
         checkFilesExist(`${app}/playwright.config.mts`);
-
-        const cfg = readFile(`${app}/playwright.config.mts`);
-        expect(cfg).toContain('export default defineConfig');
-        expect(cfg).toContain('import.meta.dirname');
-        expect(cfg).not.toContain('__filename');
-        expect(cfg).not.toContain('module.exports');
 
         const { graph } = runGraph();
 
@@ -119,28 +111,14 @@ describe('native Node.js TypeScript support', () => {
   });
 
   describe('fallback to swc/ts-node when native strip cannot handle a config', () => {
-    // Plugin workers register the swc-node CJS hook the first time a file
-    // fails native strip. Subsequent file loads in the SAME worker hit the
-    // hook directly and skip the fallback path, so only the first broken
-    // file logs a fallback message. To keep each test's assertion meaningful,
-    // every test registers its broken config(s) here and afterEach restores
-    // each to valid CJS so the next test sees a clean workspace.
-    const broken: string[] = [];
-
-    afterEach(() => {
-      for (const filePath of broken) {
-        const lib = filePath.split('/')[0];
-        // `.cts` is the default jest config extension for jest 30+, so keep
-        // a valid CJS config in place. Other extensions are test-only - just
-        // remove them so the .cts default takes over.
-        if (filePath.endsWith('.cts')) {
-          updateFile(filePath, `module.exports = { displayName: '${lib}' };\n`);
-        } else {
-          removeFile(filePath);
-        }
-      }
-      broken.length = 0;
-    });
+    // The workspace is shared across tests (one `newProject` in `beforeAll`),
+    // so libs accumulate. Each test must restore its broken config file(s)
+    // BEFORE assertions so a later test doesn't see two broken configs at
+    // once - the plugin worker registers the swc-node CJS hook on the first
+    // broken file it processes, and subsequent broken files silently skip
+    // logging, which would make per-test assertions flaky based on
+    // `uniq()`-randomized lib ordering. Each test does its own cleanup
+    // between graph capture and assertions.
 
     it(
       'should fall back to swc/ts-node when a TS config uses an enum',
@@ -158,7 +136,6 @@ const mode: Mode = Mode.Standard;
 module.exports = { displayName: '${lib}', mode };
 `
         );
-        broken.push(`${lib}/jest.config.cts`);
 
         // Daemon owns project graph load - disable so fallback log lands in CLI stderr
         // instead of .nx/workspace-data/d/daemon.log. redirectStderr merges stderr
@@ -168,6 +145,12 @@ module.exports = { displayName: '${lib}', mode };
           daemon: false,
           redirectStderr: true,
         });
+
+        // Restore valid CJS so later tests see a clean workspace.
+        updateFile(
+          `${lib}/jest.config.cts`,
+          `module.exports = { displayName: '${lib}' };\n`
+        );
 
         expect(result).toContain('Native Node.js TypeScript stripping failed');
         expect(graph.graph.nodes[lib]).toBeDefined();
@@ -207,13 +190,19 @@ module.exports = { displayName: '${lib}', mode };
 module.exports = { displayName };
 `
         );
-        broken.push(`${lib}/jest.config.cts`, `${lib}/jest-helpers.ts`);
 
         const { result, graph } = runGraph({
           env: { NX_VERBOSE_LOGGING: 'true' },
           daemon: false,
           redirectStderr: true,
         });
+
+        // Restore valid CJS + drop the helper so later tests see a clean workspace.
+        updateFile(
+          `${lib}/jest.config.cts`,
+          `module.exports = { displayName: '${lib}' };\n`
+        );
+        removeFile(`${lib}/jest-helpers.ts`);
 
         expect(result).toContain(
           'Module not found after tsconfig-paths; falling back to swc/ts-node'
@@ -240,13 +229,18 @@ module.exports = { displayName };
           `${lib}/jest.config.cts`,
           `export default { displayName: '${lib}' };\n`
         );
-        broken.push(`${lib}/jest.config.cts`);
 
         const { result, graph } = runGraph({
           env: { NX_VERBOSE_LOGGING: 'true' },
           daemon: false,
           redirectStderr: true,
         });
+
+        // Restore valid CJS so later tests see a clean workspace.
+        updateFile(
+          `${lib}/jest.config.cts`,
+          `module.exports = { displayName: '${lib}' };\n`
+        );
 
         expect(result).toContain(
           'ESM syntax in forced-CJS file; falling back to swc/ts-node'
@@ -274,13 +268,15 @@ const mode: Mode = Mode.Standard;
 export default { displayName: '${lib}', mode };
 `
         );
-        broken.push(`${lib}/jest.config.mts`);
 
         const { result, graph } = runGraph({
           env: { NX_VERBOSE_LOGGING: 'true' },
           daemon: false,
           redirectStderr: true,
         });
+
+        // Drop the .mts so the .cts default takes over for later tests.
+        removeFile(`${lib}/jest.config.mts`);
 
         expect(result).toContain('Native Node.js TypeScript stripping failed');
         expect(graph.graph.nodes[lib]).toBeDefined();
@@ -317,7 +313,6 @@ const config = await Promise.resolve({ displayName: '${lib}', mode: Mode.Standar
 export default config;
 `
         );
-        broken.push(`${lib}/jest.config.mts`);
 
         const result = runCLI(`graph --file=${GRAPH_FILE}`, {
           env: { NX_VERBOSE_LOGGING: 'true' },
@@ -325,6 +320,9 @@ export default config;
           redirectStderr: true,
           silenceError: true,
         });
+
+        // Drop the .mts so the .cts default takes over for later tests.
+        removeFile(`${lib}/jest.config.mts`);
 
         expect(result).toContain('Registering ESM TypeScript loader');
       },
