@@ -38,10 +38,7 @@ export async function handleImport<T = any>(
     // dynamic import(). Native strip handles `.ts` extension resolution on
     // the import() path, so this recovers TLA plugin entry points without
     // requiring swc-node or ts-node to be installed.
-    if (
-      e.code === 'ERR_REQUIRE_ESM' ||
-      e.code === 'ERR_REQUIRE_ASYNC_MODULE'
-    ) {
+    if (e.code === 'ERR_REQUIRE_ESM' || e.code === 'ERR_REQUIRE_ASYNC_MODULE') {
       return import(resolvedPath) as Promise<T>;
     }
     // Mirror `loadTsFile`'s fallback set (register.ts). Plugin loads hit a
