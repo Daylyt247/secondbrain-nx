@@ -519,19 +519,28 @@ export function isRequireInEsmScopeError(
 ): boolean {
   if (!(err instanceof ReferenceError)) return false;
   if (!(filePath.endsWith('.ts') || filePath.endsWith('.mts'))) return false;
+  // Node's exact phrasing varies across versions / strip modes. Match the
+  // bare-name form too (e.g. `__dirname is not defined`) so the fallback
+  // still triggers when the trailing "in ES module scope" is absent.
   const msg = err.message;
   return (
-    msg.includes('require is not defined in ES module scope') ||
-    msg.includes('__dirname is not defined in ES module scope') ||
-    msg.includes('__filename is not defined in ES module scope')
+    /(require|__dirname|__filename) is not defined/.test(msg)
   );
 }
 
 export function isTsEsmSyntaxError(err: unknown, filePath: string): boolean {
   if (!(err instanceof SyntaxError)) return false;
+  if (!filePath.endsWith('.ts')) return false;
+  // Node has multiple phrasings for ESM-in-CJS-scope syntax errors depending
+  // on whether the offending token is `import` or `export` and which parser
+  // path triggered: "Cannot use import statement outside a module" or
+  // "Unexpected token 'export'" / "Unexpected token 'import'". swc-node's
+  // CJS hook compiles ESM->CJS regardless of the surface error, so all of
+  // these should escalate to the same fallback.
+  const msg = err.message;
   return (
-    filePath.endsWith('.ts') &&
-    err.message.includes('Cannot use import statement outside a module')
+    msg.includes('Cannot use import statement outside a module') ||
+    /Unexpected token ['"](export|import)['"]/.test(msg)
   );
 }
 

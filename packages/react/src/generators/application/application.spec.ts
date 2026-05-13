@@ -115,7 +115,7 @@ describe('app', () => {
         'utf-8'
       );
       expect(cypressConfig).toMatchInlineSnapshot(`
-        "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+        "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset.js');
         const { defineConfig } = require('cypress');
         module.exports = defineConfig({
             e2e: {

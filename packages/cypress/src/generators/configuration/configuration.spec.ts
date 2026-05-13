@@ -41,7 +41,7 @@ describe('Cypress e2e configuration', () => {
     });
     expect(tree.read('apps/my-app/cypress.config.ts', 'utf-8'))
       .toMatchInlineSnapshot(`
-      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset.js');
       const { defineConfig } = require('cypress');
       module.exports = defineConfig({
         e2e: {
@@ -99,7 +99,7 @@ describe('Cypress e2e configuration', () => {
 
     expect(tree.read('apps/my-app/cypress.config.ts', 'utf-8'))
       .toMatchInlineSnapshot(`
-      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset.js');
       const { defineConfig } = require('cypress');
       module.exports = defineConfig({
         e2e: {
@@ -167,7 +167,7 @@ describe('Cypress e2e configuration', () => {
     });
     expect(tree.read('libs/my-lib/cypress.config.ts', 'utf-8'))
       .toMatchInlineSnapshot(`
-      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset.js');
       const { defineConfig } = require('cypress');
       module.exports = defineConfig({
         e2e: {
@@ -196,7 +196,7 @@ describe('Cypress e2e configuration', () => {
     assertCypressFiles(tree, 'apps/my-app/src');
     expect(tree.read('apps/my-app/cypress.config.ts', 'utf-8'))
       .toMatchInlineSnapshot(`
-      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset.js');
       const { defineConfig } = require('cypress');
       module.exports = defineConfig({
         e2e: {
@@ -553,7 +553,7 @@ export default defineConfig({
 
     expect(tree.read('libs/my-lib/cypress.config.js', 'utf-8'))
       .toMatchInlineSnapshot(`
-      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset.js');
       const { defineConfig } = require('cypress');
       module.exports = defineConfig({
         e2e: {

@@ -693,7 +693,7 @@ export class E2eMigrator extends ProjectMigrator<SupportedTargets> {
       sourceFile,
       configFilePath,
       'nxE2EPreset',
-      '@nx/cypress/plugins/cypress-preset'
+      '@nx/cypress/plugins/cypress-preset.js'
     );
     // update recorder with the new content from the file
     recorder.setContentToFileContent();
