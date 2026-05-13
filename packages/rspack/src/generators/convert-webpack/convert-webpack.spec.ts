@@ -198,7 +198,7 @@ describe('Convert webpack', () => {
               import { withNx } from '@nx/rspack';
               import { composePlugins } from '@nx/rspack';
 
-              import { ModuleFederationConfig } from '@nx/module-federation';
+              import type { ModuleFederationConfig } from '@nx/module-federation';
 
               import baseConfig from './module-federation.config';
 
