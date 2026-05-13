@@ -25,9 +25,9 @@ describe('createConfig', () => {
         import { createConfig }from '@nx/angular-rspack';
         
         
-        export default createConfig({ 
+        export default createConfig({
           options: {
-            root: __dirname,
+            root: import.meta.dirname,
             
         "index": "src/index.html",
         "browser": "src/main.ts",
@@ -72,9 +72,9 @@ describe('createConfig', () => {
         import { createConfig }from '@nx/angular-rspack';
         
         
-        export default createConfig({ 
+        export default createConfig({
           options: {
-            root: __dirname,
+            root: import.meta.dirname,
             
         "index": "src/index.html",
         "browser": "src/main.ts"

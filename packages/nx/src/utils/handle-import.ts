@@ -36,10 +36,21 @@ export async function handleImport<T = any>(
     if (e.code === 'ERR_REQUIRE_ESM') {
       return import(resolvedPath) as Promise<T>;
     }
+    // Mirror `loadTsFile`'s fallback set (register.ts). Plugin loads hit a
+    // wider failure surface than .ts config loads because plugin sources are
+    // often ESM and import type-only symbols from `@nx/devkit` as runtime
+    // named exports. Lazy-require the matchers to keep register/transpiler
+    // (and their daemon/logger deps) out of module-eval-time graphs.
+    const matchers =
+      require('../plugins/js/utils/register') as typeof import('../plugins/js/utils/register');
     if (
       e?.code === 'ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX' ||
       e?.code === 'MODULE_NOT_FOUND' ||
-      e?.code === 'ERR_MODULE_NOT_FOUND'
+      e?.code === 'ERR_MODULE_NOT_FOUND' ||
+      matchers.isTsEsmSyntaxError(e, resolvedPath) ||
+      matchers.isTsEsmNamedExportLinkageError(e, resolvedPath) ||
+      matchers.isCjsSyntaxError(e, resolvedPath) ||
+      matchers.isRequireInEsmScopeError(e, resolvedPath)
     ) {
       // Lazy-require to avoid pulling register/transpiler (and their
       // daemon/logger transitive deps) into module-eval-time graphs.

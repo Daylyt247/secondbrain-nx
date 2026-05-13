@@ -505,14 +505,25 @@ export function isCjsSyntaxError(err: unknown, filePath: string): boolean {
   return filePath.endsWith('.cts') || filePath.endsWith('.cjs');
 }
 
+/**
+ * A ReferenceError from Node treating a `.ts`/`.mts` file as ESM and the file
+ * relying on a CJS-only global: `require`, `__dirname`, or `__filename`.
+ * Pre-v23 swc-node compiled `.ts` to CJS where these globals exist; under
+ * native strip Node detects ESM via `import`/`export` syntax and these globals
+ * are undefined. Registering swc/ts-node compiles ESM->CJS and restores the
+ * legacy globals.
+ */
 export function isRequireInEsmScopeError(
   err: unknown,
   filePath: string
 ): boolean {
   if (!(err instanceof ReferenceError)) return false;
+  if (!(filePath.endsWith('.ts') || filePath.endsWith('.mts'))) return false;
+  const msg = err.message;
   return (
-    (filePath.endsWith('.ts') || filePath.endsWith('.mts')) &&
-    err.message.includes('require is not defined in ES module scope')
+    msg.includes('require is not defined in ES module scope') ||
+    msg.includes('__dirname is not defined in ES module scope') ||
+    msg.includes('__filename is not defined in ES module scope')
   );
 }
 

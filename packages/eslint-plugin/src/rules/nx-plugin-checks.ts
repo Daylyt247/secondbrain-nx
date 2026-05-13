@@ -431,6 +431,26 @@ export function validateEntry(
   }
 }
 
+// Under Node's native TS strip, swc-node isn't registered, so `require.resolve`
+// no longer auto-tries `.ts` extensions. Try them explicitly before giving up.
+const TS_EXTENSIONS = ['.ts', '.tsx', '.cts', '.mts'];
+
+function tryResolveImplementation(modulePath: string): string | undefined {
+  try {
+    return require.resolve(modulePath);
+  } catch {
+    // fall through
+  }
+  for (const ext of TS_EXTENSIONS) {
+    try {
+      return require.resolve(`${modulePath}${ext}`);
+    } catch {
+      // try next
+    }
+  }
+  return undefined;
+}
+
 export function validateImplementationNode(
   implementationNode: AST.JSONProperty,
   key: string,
@@ -458,16 +478,11 @@ export function validateImplementationNode(
       implementationPath
     );
 
-    try {
-      resolvedPath = require.resolve(modulePath);
-    } catch {
-      try {
-        resolvedPath = require.resolve(
-          modulePath.replace(options.outDir, options.rootDir)
-        );
-      } catch {
-        // nothing, will be reported below
-      }
+    resolvedPath = tryResolveImplementation(modulePath);
+    if (!resolvedPath && options.outDir && options.rootDir) {
+      resolvedPath = tryResolveImplementation(
+        modulePath.replace(options.outDir, options.rootDir)
+      );
     }
 
     if (!resolvedPath) {
