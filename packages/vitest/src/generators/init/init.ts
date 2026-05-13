@@ -21,6 +21,7 @@ import {
 import { createNodesV2 } from '../../plugins/plugin';
 import { getInstalledViteMajorVersion } from '../../utils/version-utils';
 import { ignoreVitestTempFiles } from '../../utils/ignore-vitest-temp-files';
+import { assertSupportedVitestVersion } from '../../utils/assert-supported-vitest-version';
 
 export function updateDependencies(tree: Tree, schema: InitGeneratorSchema) {
   // Determine which vite version to install:
@@ -47,7 +48,7 @@ export function updateDependencies(tree: Tree, schema: InitGeneratorSchema) {
       vite: viteVersionToUse,
     },
     undefined,
-    schema.keepExistingVersions
+    schema.keepExistingVersions ?? true
   );
 }
 
@@ -82,6 +83,8 @@ export function updateNxJsonSettings(tree: Tree) {
 }
 
 export async function initGenerator(tree: Tree, schema: InitGeneratorSchema) {
+  assertSupportedVitestVersion(tree);
+
   const nxJson = readNxJson(tree);
   const addPluginDefault =
     process.env.NX_ADD_PLUGINS !== 'false' &&

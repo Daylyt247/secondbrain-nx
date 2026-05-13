@@ -34,6 +34,7 @@ import {
   getInstalledViteMajorVersion,
   getVitestDependenciesVersionsToInstall,
 } from '../../utils/version-utils';
+import { assertSupportedVitestVersion } from '../../utils/assert-supported-vitest-version';
 import { clean, coerce, major } from 'semver';
 
 /**
@@ -83,6 +84,8 @@ export async function configurationGeneratorInternal(
   schema: VitestGeneratorSchema,
   hasPlugin = false
 ) {
+  assertSupportedVitestVersion(tree);
+
   // Setting default to jsdom since it is the most common use case (React, Web).
   // The @nx/js:lib generator specifically sets this to node to be more generic.
   schema.testEnvironment ??= 'jsdom';
