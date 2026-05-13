@@ -523,9 +523,7 @@ export function isRequireInEsmScopeError(
   // bare-name form too (e.g. `__dirname is not defined`) so the fallback
   // still triggers when the trailing "in ES module scope" is absent.
   const msg = err.message;
-  return (
-    /(require|__dirname|__filename) is not defined/.test(msg)
-  );
+  return /(require|__dirname|__filename) is not defined/.test(msg);
 }
 
 export function isTsEsmSyntaxError(err: unknown, filePath: string): boolean {
