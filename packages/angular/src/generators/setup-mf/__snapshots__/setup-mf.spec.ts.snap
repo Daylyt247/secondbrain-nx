@@ -271,7 +271,7 @@ module.exports = {
 `;
 
 exports[`Init MF should create webpack and mf configs correctly when --typescriptConfiguration=true 1`] = `
-"import { withModuleFederation } from '@nx/module-federation/angular.js';
+"import { withModuleFederation } from '@nx/module-federation/angular';
 import config from './module-federation.config';
 
 /**
@@ -311,7 +311,7 @@ export default config;
 `;
 
 exports[`Init MF should create webpack and mf configs correctly when --typescriptConfiguration=true 3`] = `
-"import { withModuleFederation } from '@nx/module-federation/angular.js';
+"import { withModuleFederation } from '@nx/module-federation/angular';
 import config from './module-federation.config';
 
 /**
