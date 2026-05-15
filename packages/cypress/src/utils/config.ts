@@ -94,13 +94,20 @@ ${updatedConfigContents}`;
 }
 
 /**
- * Adds the nxComponentTestingPreset to the cypress config file
- * Make sure after calling this the correct import statement is addeda
- * to bring in the nxComponentTestingPreset function
+ * Adds the nxComponentTestingPreset to the cypress config file.
+ *
+ * Pass `presetImportPath` (e.g. `@nx/angular/plugins/component-testing`) to
+ * have the matching `import` (ESM) or `const { ... } = require(...)` (CJS)
+ * statement prepended automatically based on the detected module shape.
+ * Without it, the caller is responsible for prepending the import - but
+ * doing so unconditionally produces mixed-syntax files in CJS workspaces
+ * (an ESM `import` followed by a CJS `module.exports`), so prefer passing
+ * `presetImportPath`.
  **/
 export async function addDefaultCTConfig(
   cyConfigContents: string,
-  options: NxComponentTestingOptions = {}
+  options: NxComponentTestingOptions = {},
+  presetImportPath?: string
 ) {
   if (!cyConfigContents) {
     throw new Error('The passed in cypress config file is empty!');
@@ -142,7 +149,7 @@ export async function addDefaultCTConfig(
         if (node.properties.length > 0) {
           return `{
   ${node.properties.map((p) => p.getText()).join(',\n')},
-  component: ${configValue} 
+  component: ${configValue}
 }`;
         }
         return `{
@@ -151,6 +158,21 @@ export async function addDefaultCTConfig(
       }
     );
   }
+
+  if (presetImportPath) {
+    // Use the path verbatim - callers pass the public exported subpath. Don't
+    // append `.js`: @nx/react and @nx/angular's package exports only declare
+    // the bare `./plugins/component-testing` subpath, so a `.js` suffix
+    // breaks strict ESM resolution with ERR_PACKAGE_PATH_NOT_EXPORTED.
+    // (addDefaultE2EConfig hard-codes `.js` because @nx/cypress has no
+    // exports map - it can get away with the suffix; subpath-exporting
+    // packages cannot.)
+    const prefix = isCommonJS
+      ? `const { nxComponentTestingPreset } = require('${presetImportPath}');\n`
+      : `import { nxComponentTestingPreset } from '${presetImportPath}';\n`;
+    return `${prefix}${updatedConfigContents}`;
+  }
+
   return updatedConfigContents;
 }
 
