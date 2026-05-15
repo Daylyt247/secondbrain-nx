@@ -79,15 +79,13 @@ export async function addDefaultE2EConfig(
       }
     );
 
-    // ESM strict resolution requires the explicit `.js` extension on the
-    // subpath import (no exports map on @nx/cypress to map the bare path).
-    // The CJS form keeps the `.js` extension too because Node's native TS
-    // strip can route a CJS-looking `.ts` config through the ESM resolver in
-    // some configurations, where the bare specifier then fails to resolve.
+    // @nx/cypress's package exports cover both bare and `.js`-suffixed
+    // subpath forms, so emit the bare path - matches addDefaultCTConfig and
+    // keeps generated configs free of incidental `.js` noise.
     return isCommonJS
-      ? `const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset.js');
+      ? `const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
 ${updatedConfigContents}`
-      : `import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset.js';
+      : `import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset';
 ${updatedConfigContents}`;
   }
   return updatedConfigContents;

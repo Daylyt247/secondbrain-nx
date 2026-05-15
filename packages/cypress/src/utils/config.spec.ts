@@ -41,7 +41,7 @@ export default defineConfig({
       undefined
     );
     expect(actual).toMatchInlineSnapshot(`
-      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset.js';
+      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset';
       import { defineConfig } from 'cypress';
       import { nxComponentTestingPreset } from '@nx/angular/plugins/component-testing';
       export default defineConfig({
@@ -134,7 +134,7 @@ export default defineConfig({
       'https://example.com'
     );
     expect(actual).toMatchInlineSnapshot(`
-      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset.js';
+      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset';
       import { defineConfig } from 'cypress';
       import { nxComponentTestingPreset } from '@nx/angular/plugins/component-testing';
       export default defineConfig({
@@ -167,7 +167,7 @@ export default defineConfig({
       undefined
     );
     expect(actual).toMatchInlineSnapshot(`
-      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset.js';
+      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset';
       import { defineConfig } from 'cypress';
       import { nxComponentTestingPreset } from '@nx/angular/plugins/component-testing';
       export default defineConfig({
