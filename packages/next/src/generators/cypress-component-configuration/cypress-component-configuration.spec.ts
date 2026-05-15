@@ -43,11 +43,14 @@ describe('cypress-component-configuration generator', () => {
     );
     expect(readJson(tree, 'demo/cypress/tsconfig.json')).toMatchSnapshot();
     expect(tree.read('demo/cypress.config.ts', 'utf-8')).toMatchInlineSnapshot(`
-      "const { nxComponentTestingPreset } = require('@nx/next/plugins/component-testing');
+      "const {
+        nxComponentTestingPreset,
+      } = require('@nx/next/plugins/component-testing');
       const { defineConfig } = require('cypress');
       module.exports = defineConfig({
-          component: nxComponentTestingPreset(__filename)
-      });"
+        component: nxComponentTestingPreset(__filename),
+      });
+      "
     `);
     expect(tree.read('demo/cypress/support/component.ts', 'utf-8'))
       .toMatchInlineSnapshot(`
@@ -163,11 +166,14 @@ describe('cypress-component-configuration generator', () => {
     );
     expect(readJson(tree, 'demo/cypress/tsconfig.json')).toMatchSnapshot();
     expect(tree.read('demo/cypress.config.ts', 'utf-8')).toMatchInlineSnapshot(`
-      "const { nxComponentTestingPreset } = require('@nx/next/plugins/component-testing');
+      "const {
+        nxComponentTestingPreset,
+      } = require('@nx/next/plugins/component-testing');
       const { defineConfig } = require('cypress');
       module.exports = defineConfig({
-          component: nxComponentTestingPreset(__filename)
-      });"
+        component: nxComponentTestingPreset(__filename),
+      });
+      "
     `);
     expect(tree.exists('demo/pages/index.cy.ts')).toBeFalsy();
   });
