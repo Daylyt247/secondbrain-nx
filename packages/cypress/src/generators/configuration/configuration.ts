@@ -41,6 +41,7 @@ import {
   getInstalledCypressMajorVersion,
   versions,
 } from '../../utils/versions';
+import { isEsmProject } from '@nx/js/src/internal';
 import { addBaseCypressSetup } from '../base-setup/base-setup';
 import cypressInitGenerator, { addPlugin } from '../init/init';
 
@@ -372,7 +373,8 @@ async function addFiles(
       ciWebServerCommand: ciWebServerCommand,
       ciBaseUrl,
     },
-    options.baseUrl
+    options.baseUrl,
+    isEsmProject(tree, projectConfig.root)
   );
 
   tree.write(cyFile, updatedCyConfig);

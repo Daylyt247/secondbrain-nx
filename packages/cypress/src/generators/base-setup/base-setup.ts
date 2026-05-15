@@ -9,6 +9,7 @@ import {
   updateJson,
 } from '@nx/devkit';
 import { getRelativePathToRootTsConfig } from '@nx/js';
+import { isEsmProject } from '@nx/js/src/internal';
 import { isUsingTsSolutionSetup } from '@nx/js/src/utils/typescript/ts-solution-setup';
 import { join } from 'path';
 
@@ -144,19 +145,6 @@ function normalizeOptions(
     offsetFromProjectRoot: `${offsetFromProjectRoot}/`,
     hasTsConfig,
   };
-}
-
-function isEsmProject(tree: Tree, projectRoot: string) {
-  let packageJson: any;
-  if (tree.exists(joinPathFragments(projectRoot, 'package.json'))) {
-    packageJson = readJson(
-      tree,
-      joinPathFragments(projectRoot, 'package.json')
-    );
-  } else {
-    packageJson = readJson(tree, 'package.json');
-  }
-  return packageJson.type === 'module';
 }
 
 function isEslintInstalled(tree: Tree): boolean {

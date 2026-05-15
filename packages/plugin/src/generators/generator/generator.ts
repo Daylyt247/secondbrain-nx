@@ -102,6 +102,12 @@ function addFiles(host: Tree, options: NormalizedSchema) {
     ...options,
     generatorFnName: `${options.propertyName}Generator`,
     schemaInterfaceName: `${options.className}GeneratorSchema`,
+    // TS solution projects are loaded as ESM where `__dirname` is undefined;
+    // emit `import.meta.dirname` instead so the generator resolves its
+    // `./files` template dir under native TS stripping.
+    dirnameExpression: options.isTsSolutionSetup
+      ? 'import.meta.dirname'
+      : '__dirname',
   });
 
   if (options.unitTestRunner === 'none') {

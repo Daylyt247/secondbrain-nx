@@ -92,6 +92,7 @@ async function addFiles(
   const { addMountDefinition, addDefaultCTConfig } = await import(
     '@nx/cypress/src/utils/config'
   );
+  const { isEsmProject } = await import('@nx/js/src/internal');
   const { getInstalledCypressMajorVersion } = await import(
     '@nx/cypress/src/utils/versions'
   );
@@ -118,7 +119,8 @@ async function addFiles(
   const updatedCyConfig = await addDefaultCTConfig(
     tree.read(cyFile, 'utf-8'),
     undefined,
-    '@nx/next/plugins/component-testing'
+    '@nx/next/plugins/component-testing',
+    isEsmProject(tree, projectConfig.root)
   );
   tree.write(cyFile, updatedCyConfig);
 

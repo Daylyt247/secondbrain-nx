@@ -27,16 +27,26 @@ const TS_QUERY_EXPORT_CONFIG_PREFIX = `:matches(ExportAssignment, ${TS_QUERY_COM
 export async function addDefaultE2EConfig(
   cyConfigContents: string,
   options: NxCypressE2EPresetOptions,
-  baseUrl: string
+  baseUrl: string,
+  isEsmProject?: boolean
 ) {
   if (!cyConfigContents) {
     throw new Error('The passed in cypress config file is empty!');
   }
   const { tsquery } = await import('@phenomnomnominal/tsquery');
 
+  // Caller-supplied `isEsmProject` is authoritative when provided - it
+  // reflects how Node will actually load the file (project package.json
+  // `type` + TS solution setup). Falling back to file-content sniffing
+  // (which only sees `module.exports` vs `export default`) is unsafe when
+  // a project's package.json gets `type: "module"` written AFTER cypress
+  // setup ran: a CJS-shape file then loads as ESM and `__filename` is
+  // undefined.
   const isCommonJS =
-    tsquery.query(cyConfigContents, TS_QUERY_COMMON_JS_EXPORT_SELECTOR).length >
-    0;
+    isEsmProject === undefined
+      ? tsquery.query(cyConfigContents, TS_QUERY_COMMON_JS_EXPORT_SELECTOR)
+          .length > 0
+      : !isEsmProject;
   const testingTypeConfig = tsquery.query<PropertyAssignment>(
     cyConfigContents,
     `${TS_QUERY_EXPORT_CONFIG_PREFIX} PropertyAssignment:has(Identifier[name="e2e"])`
@@ -105,16 +115,21 @@ ${updatedConfigContents}`;
 export async function addDefaultCTConfig(
   cyConfigContents: string,
   options: NxComponentTestingOptions = {},
-  presetImportPath?: string
+  presetImportPath?: string,
+  isEsmProject?: boolean
 ) {
   if (!cyConfigContents) {
     throw new Error('The passed in cypress config file is empty!');
   }
   const { tsquery } = await import('@phenomnomnominal/tsquery');
 
+  // See addDefaultE2EConfig for the rationale on the explicit `isEsmProject`
+  // arg vs file-content sniffing.
   const isCommonJS =
-    tsquery.query(cyConfigContents, TS_QUERY_COMMON_JS_EXPORT_SELECTOR).length >
-    0;
+    isEsmProject === undefined
+      ? tsquery.query(cyConfigContents, TS_QUERY_COMMON_JS_EXPORT_SELECTOR)
+          .length > 0
+      : !isEsmProject;
   const testingTypeConfig = tsquery.query<PropertyAssignment>(
     cyConfigContents,
     `${TS_QUERY_EXPORT_CONFIG_PREFIX} PropertyAssignment:has(Identifier[name="component"])`

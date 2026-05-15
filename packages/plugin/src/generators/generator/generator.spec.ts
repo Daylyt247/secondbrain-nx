@@ -5,6 +5,8 @@ import {
   readJson,
   readProjectConfiguration,
   Tree,
+  updateJson,
+  writeJson,
 } from '@nx/devkit';
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { libraryGenerator as jsLibraryGenerator } from '@nx/js';
@@ -379,6 +381,119 @@ describe('NxPlugin Generator Generator', () => {
       expect(generatorsJson.generators['component-generator'].factory).toEqual(
         './src/generators/component-generator/my-generator'
       );
+    });
+  });
+
+  describe('module-system-aware __dirname emission', () => {
+    // The generator template has `import` syntax which forces Node's native
+    // strip to load the file as ESM. `__dirname` is undefined in ESM scope,
+    // so for ESM-shaped projects (TS solution) the template must emit
+    // `import.meta.dirname` instead.
+
+    it('emits __dirname for non-TS-solution workspaces', async () => {
+      await generatorGenerator(tree, {
+        name: 'cjs-gen',
+        path: 'my-plugin/src/generators/cjs-gen/generator',
+        unitTestRunner: 'none',
+      });
+
+      expect(
+        tree.read('my-plugin/src/generators/cjs-gen/generator.ts', 'utf-8')
+      ).toMatchInlineSnapshot(`
+        "import {
+          addProjectConfiguration,
+          formatFiles,
+          generateFiles,
+          type Tree,
+        } from '@nx/devkit';
+        import * as path from 'path';
+        import type { CjsGenGeneratorSchema } from './schema';
+
+        export async function cjsGenGenerator (tree: Tree, options: CjsGenGeneratorSchema) {
+          const projectRoot = \`libs/\${options.name}\`;
+          addProjectConfiguration(
+            tree,
+            options.name,
+            {
+              root: projectRoot,
+              projectType: 'library',
+              sourceRoot: \`\${projectRoot}/src\`,
+              targets: {}
+            }
+          );
+          generateFiles(tree, path.join(__dirname, 'files'), projectRoot, options);
+          await formatFiles(tree);
+        }
+
+        export default cjsGenGenerator;
+        "
+      `);
+    });
+
+    it('emits import.meta.dirname for TS-solution workspaces', async () => {
+      // Set up a TS solution workspace: package manager workspaces +
+      // tsconfig.base.json + tsconfig.json with TS solution shape.
+      const tsSolutionTree = createTreeWithEmptyWorkspace();
+      setCwd('');
+      updateJson(tsSolutionTree, 'package.json', (json) => {
+        json.workspaces = ['packages/*'];
+        return json;
+      });
+      writeJson(tsSolutionTree, 'tsconfig.base.json', {
+        compilerOptions: { composite: true, declaration: true },
+      });
+      writeJson(tsSolutionTree, 'tsconfig.json', {
+        extends: './tsconfig.base.json',
+        files: [],
+        references: [],
+      });
+      await pluginGenerator(tsSolutionTree, {
+        directory: 'packages/my-plugin',
+        unitTestRunner: 'jest',
+        linter: 'eslint',
+        compiler: 'tsc',
+      });
+
+      await generatorGenerator(tsSolutionTree, {
+        name: 'esm-gen',
+        path: 'packages/my-plugin/src/generators/esm-gen/generator',
+        unitTestRunner: 'none',
+      });
+
+      expect(
+        tsSolutionTree.read(
+          'packages/my-plugin/src/generators/esm-gen/generator.ts',
+          'utf-8'
+        )
+      ).toMatchInlineSnapshot(`
+        "import {
+          addProjectConfiguration,
+          formatFiles,
+          generateFiles,
+          type Tree,
+        } from '@nx/devkit';
+        import * as path from 'path';
+        import type { EsmGenGeneratorSchema } from './schema';
+
+        export async function esmGenGenerator (tree: Tree, options: EsmGenGeneratorSchema) {
+          const projectRoot = \`libs/\${options.name}\`;
+          addProjectConfiguration(
+            tree,
+            options.name,
+            {
+              root: projectRoot,
+              projectType: 'library',
+              sourceRoot: \`\${projectRoot}/src\`,
+              targets: {}
+            }
+          );
+          generateFiles(tree, path.join(import.meta.dirname, 'files'), projectRoot, options);
+          await formatFiles(tree);
+        }
+
+        export default esmGenGenerator;
+        "
+      `);
     });
   });
 });

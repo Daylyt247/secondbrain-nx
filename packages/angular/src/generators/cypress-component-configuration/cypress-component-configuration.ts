@@ -237,6 +237,9 @@ async function configureCypressCT(
   const { addDefaultCTConfig, getProjectCypressConfigPath } = <
     typeof import('@nx/cypress/src/utils/config')
   >require('@nx/cypress/src/utils/config');
+  const { isEsmProject } = <typeof import('@nx/js/src/internal')>(
+    require('@nx/js/src/internal')
+  );
   const cypressConfigPath = getProjectCypressConfigPath(
     tree,
     projectConfig.root
@@ -244,7 +247,8 @@ async function configureCypressCT(
   const updatedCyConfig = await addDefaultCTConfig(
     tree.read(cypressConfigPath, 'utf-8'),
     ctConfigOptions,
-    '@nx/angular/plugins/component-testing'
+    '@nx/angular/plugins/component-testing',
+    isEsmProject(tree, projectConfig.root)
   );
   tree.write(cypressConfigPath, updatedCyConfig);
 }

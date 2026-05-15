@@ -316,6 +316,131 @@ module.exports = defineConfig({});
       /nxComponentTestingPreset.*require|import.*nxComponentTestingPreset/
     );
   });
+
+  it('addDefaultE2EConfig: explicit isEsmProject=true forces ESM emission even for CJS-shape input', async () => {
+    // Reproduces the e2e failure where Node loads a CJS-shape `.ts` file as
+    // ESM (because the project's package.json gets `type: "module"` after the
+    // file was written). __filename is undefined in ESM scope, so the
+    // generator must emit `import.meta.dirname` based on the project's
+    // effective module system - not the file's body shape.
+    const actual = await addDefaultE2EConfig(
+      `const { defineConfig } = require('cypress');
+module.exports = defineConfig({});
+`,
+      { cypressDir: 'cypress' },
+      undefined,
+      true
+    );
+    expect(actual).toMatchInlineSnapshot(`
+      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset';
+      const { defineConfig } = require('cypress');
+      module.exports = defineConfig({
+          e2e: {
+              ...nxE2EPreset(import.meta.dirname, {
+                  "cypressDir": "cypress"
+              })
+          }
+      });"
+    `);
+  });
+
+  it('addDefaultE2EConfig: explicit isEsmProject=false forces CJS emission even for ESM-shape input', async () => {
+    const actual = await addDefaultE2EConfig(
+      `import { defineConfig } from 'cypress';
+export default defineConfig({});
+`,
+      { cypressDir: 'cypress' },
+      undefined,
+      false
+    );
+    expect(actual).toMatchInlineSnapshot(`
+      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+      import { defineConfig } from 'cypress';
+      export default defineConfig({
+          e2e: {
+              ...nxE2EPreset(__filename, {
+                  "cypressDir": "cypress"
+              })
+          }
+      });"
+    `);
+  });
+
+  it('addDefaultE2EConfig: falls back to content sniffing when isEsmProject is omitted', async () => {
+    const cjs = await addDefaultE2EConfig(
+      `const { defineConfig } = require('cypress');
+module.exports = defineConfig({});
+`,
+      { cypressDir: 'cypress' },
+      undefined
+    );
+    expect(cjs).toMatchInlineSnapshot(`
+      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
+      const { defineConfig } = require('cypress');
+      module.exports = defineConfig({
+          e2e: {
+              ...nxE2EPreset(__filename, {
+                  "cypressDir": "cypress"
+              })
+          }
+      });"
+    `);
+
+    const esm = await addDefaultE2EConfig(
+      `import { defineConfig } from 'cypress';
+export default defineConfig({});
+`,
+      { cypressDir: 'cypress' },
+      undefined
+    );
+    expect(esm).toMatchInlineSnapshot(`
+      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset';
+      import { defineConfig } from 'cypress';
+      export default defineConfig({
+          e2e: {
+              ...nxE2EPreset(import.meta.dirname, {
+                  "cypressDir": "cypress"
+              })
+          }
+      });"
+    `);
+  });
+
+  it('addDefaultCTConfig: explicit isEsmProject=true forces ESM emission even for CJS-shape input', async () => {
+    const actual = await addDefaultCTConfig(
+      `const { defineConfig } = require('cypress');
+module.exports = defineConfig({});
+`,
+      {},
+      '@nx/react/plugins/component-testing',
+      true
+    );
+    expect(actual).toMatchInlineSnapshot(`
+      "import { nxComponentTestingPreset } from '@nx/react/plugins/component-testing';
+      const { defineConfig } = require('cypress');
+      module.exports = defineConfig({
+          component: nxComponentTestingPreset(import.meta.dirname)
+      });"
+    `);
+  });
+
+  it('addDefaultCTConfig: explicit isEsmProject=false forces CJS emission even for ESM-shape input', async () => {
+    const actual = await addDefaultCTConfig(
+      `import { defineConfig } from 'cypress';
+export default defineConfig({});
+`,
+      {},
+      '@nx/react/plugins/component-testing',
+      false
+    );
+    expect(actual).toMatchInlineSnapshot(`
+      "const { nxComponentTestingPreset } = require('@nx/react/plugins/component-testing');
+      import { defineConfig } from 'cypress';
+      export default defineConfig({
+          component: nxComponentTestingPreset(__filename)
+      });"
+    `);
+  });
 });
 
 describe('resolveCypressConfigObject', () => {

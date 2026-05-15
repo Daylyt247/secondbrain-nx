@@ -60,6 +60,7 @@ export async function configureCypressCT(
   const { addDefaultCTConfig, getProjectCypressConfigPath } = await import(
     '@nx/cypress/src/utils/config'
   );
+  const { isEsmProject } = await import('@nx/js/src/internal');
 
   const ctConfigOptions: NxComponentTestingOptions = {
     bundler: options.bundler ?? (await getActualBundler(tree, options, found)),
@@ -85,7 +86,8 @@ export async function configureCypressCT(
   const updatedCyConfig = await addDefaultCTConfig(
     tree.read(cypressConfigFilePath, 'utf-8'),
     ctConfigOptions,
-    '@nx/react/plugins/component-testing'
+    '@nx/react/plugins/component-testing',
+    isEsmProject(tree, projectConfig.root)
   );
   tree.write(cypressConfigFilePath, updatedCyConfig);
 

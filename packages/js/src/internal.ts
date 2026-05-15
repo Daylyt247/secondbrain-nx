@@ -1,4 +1,5 @@
 export { resolveModuleByImport } from './utils/typescript/ast-utils';
+export { isEsmProject } from './utils/module-format/is-esm-project';
 export {
   walkTsconfigExtendsChain,
   type RawTsconfigJsonCache,
