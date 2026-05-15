@@ -5,9 +5,11 @@ export {
 } from './utils/typescript/raw-tsconfig';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 export {
+  forceRegisterEsmLoader,
   loadTsFile,
   registerTsProject,
   registerTsConfigPaths,
+  requireWithTsconfigFallback,
 } from 'nx/src/plugins/js/utils/register';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 export {

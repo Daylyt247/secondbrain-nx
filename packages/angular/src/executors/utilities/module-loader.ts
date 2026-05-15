@@ -1,6 +1,6 @@
 import { extname } from 'path';
 import { pathToFileURL } from 'node:url';
-import { loadTsFile } from '@nx/js/src/internal';
+import { loadTsFile, requireWithTsconfigFallback } from '@nx/js/src/internal';
 
 export async function loadModule<T = any>(
   path: string,
@@ -22,7 +22,9 @@ export async function loadModule<T = any>(
 
   try {
     const result =
-      isTs && tsConfig ? loadTsFile<any>(path, tsConfig) : require(path);
+      isTs && tsConfig
+        ? loadTsFile<any>(path, tsConfig)
+        : requireWithTsconfigFallback<any>(path, tsConfig);
     return result.default ?? result;
   } catch (e: any) {
     // ERR_REQUIRE_ESM (legacy) and ERR_REQUIRE_ASYNC_MODULE (Node 22.12+,

@@ -9,7 +9,7 @@ import {
   readJsonFile,
   workspaceRoot,
 } from '@nx/devkit';
-import { loadTsFile } from '@nx/js/src/internal';
+import { loadTsFile, requireWithTsconfigFallback } from '@nx/js/src/internal';
 import * as path from 'path';
 import { valid } from 'semver';
 import { readProjectGraph } from '../utils/project-graph-utils';
@@ -686,6 +686,8 @@ export function checkIfIdentifierIsFunction(
   }
 
   // Fallback to require()
-  const m = filePath.endsWith('.ts') ? loadTsFile(filePath) : require(filePath);
+  const m = /\.[cm]?ts$/.test(filePath)
+    ? loadTsFile(filePath)
+    : requireWithTsconfigFallback(filePath);
   return identifier in m && typeof m[identifier] === 'function';
 }

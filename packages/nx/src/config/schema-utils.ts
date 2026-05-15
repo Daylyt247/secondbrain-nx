@@ -1,7 +1,10 @@
 import { existsSync } from 'fs';
-import { extname, join } from 'path';
+import { join } from 'path';
 import { resolve as resolveExports } from 'resolve.exports';
-import { loadTsFile } from '../plugins/js/utils/register';
+import {
+  loadTsFile,
+  requireWithTsconfigFallback,
+} from '../plugins/js/utils/register';
 import { getWorkspacePackagesMetadata } from '../plugins/js/utils/packages';
 import { normalizePath } from '../utils/path';
 import type { ProjectConfiguration } from './workspace-json-project-json';
@@ -30,11 +33,11 @@ export function getImplementationFactory<T>(
     // Route .ts entrypoints through loadTsFile so the native-strip ->
     // swc/ts-node fallback chain runs. Plain require() bypasses the matcher
     // set and bubbles errors like extensionless `./schema` imports (strict
-    // ESM resolution failures) straight to the CLI.
-    const module =
-      extname(modulePath) === '.ts'
-        ? loadTsFile(modulePath)
-        : require(modulePath);
+    // ESM resolution failures) straight to the CLI. JS entrypoints use
+    // requireWithTsconfigFallback so workspace-alias imports still resolve.
+    const module = /\.[cm]?ts$/.test(modulePath)
+      ? loadTsFile(modulePath)
+      : requireWithTsconfigFallback(modulePath);
     return implementationExportName
       ? module[implementationExportName]
       : (module.default ?? module);

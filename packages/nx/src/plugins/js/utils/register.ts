@@ -735,6 +735,47 @@ export function loadTsFile<T = any>(
 }
 
 /**
+ * Plain `require()` with a lazy `tsconfig-paths` fallback. Use for files that
+ * are NOT TypeScript (no transpilation needed) but may still import workspace
+ * packages through TS path aliases (e.g. a `.js` changelog renderer that
+ * `require`s `@my-org/lib`).
+ *
+ * `tsconfig-paths` is only registered after the first `require()` fails with
+ * a module-resolution error, so workspaces that resolve aliases through
+ * package-manager symlinks pay nothing. Set `NX_DISABLE_TSCONFIG_PATHS=true`
+ * to skip the fallback entirely.
+ *
+ * @returns the loaded module
+ */
+export function requireWithTsconfigFallback<T = any>(
+  filePath: string,
+  tsConfigPath?: string
+): T {
+  try {
+    return require(filePath) as T;
+  } catch (err) {
+    if (!isModuleNotFoundError(err) || disableTsConfigPaths) {
+      throw err;
+    }
+    const resolvedTsConfigPath = tsConfigPath ?? getRootTsConfigPath();
+    if (!resolvedTsConfigPath) {
+      throw err;
+    }
+    const cleanup = registerTsConfigPaths(resolvedTsConfigPath);
+    try {
+      delete require.cache[require.resolve(filePath)];
+    } catch {
+      // require.resolve may throw if the failed load never reached cache
+    }
+    try {
+      return require(filePath) as T;
+    } finally {
+      cleanup();
+    }
+  }
+}
+
+/**
  * Append the `NX_PREFER_NODE_STRIP_TYPES=false` opt-out hint so users know
  * there's an escape hatch for cases native strip can't reach (e.g. ESM with
  * top-level await + unsupported TS syntax). Skipped for:

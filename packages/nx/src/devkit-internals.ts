@@ -42,6 +42,7 @@ export {
   registerTsProject,
   loadTsFile,
   forceRegisterEsmLoader,
+  requireWithTsconfigFallback,
 } from './plugins/js/utils/register';
 export { interpolate } from './tasks-runner/utils';
 export { isCI } from './utils/is-ci';

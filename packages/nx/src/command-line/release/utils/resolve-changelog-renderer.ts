@@ -1,5 +1,8 @@
 import type ChangelogRenderer from '../../../../release/changelog-renderer';
-import { loadTsFile } from '../../../plugins/js/utils/register';
+import {
+  loadTsFile,
+  requireWithTsconfigFallback,
+} from '../../../plugins/js/utils/register';
 import { interpolate } from '../../../tasks-runner/utils';
 import { workspaceRoot } from '../../../utils/workspace-root';
 
@@ -18,10 +21,11 @@ export function resolveChangelogRenderer(
     }
   );
 
-  // Only use loadTsFile for TS extensions; a plain JS renderer in a non-TS
-  // workspace shouldn't need a workspace tsconfig to load.
+  // TS renderers go through loadTsFile (native-strip -> swc/ts-node + paths).
+  // JS renderers use require() with a lazy tsconfig-paths fallback so workspace
+  // alias imports still resolve, without paying registration cost up front.
   const r = /\.[cm]?ts$/.test(interpolatedChangelogRendererPath)
     ? loadTsFile<any>(interpolatedChangelogRendererPath)
-    : require(interpolatedChangelogRendererPath);
+    : requireWithTsconfigFallback<any>(interpolatedChangelogRendererPath);
   return r.default || r;
 }

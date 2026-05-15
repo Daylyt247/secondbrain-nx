@@ -7,7 +7,10 @@ import type {
   ProjectGraphProjectNode,
 } from '../../../config/project-graph';
 import type { Tree } from '../../../generators/tree';
-import { loadTsFile } from '../../../plugins/js/utils/register';
+import {
+  loadTsFile,
+  requireWithTsconfigFallback,
+} from '../../../plugins/js/utils/register';
 import { interpolate } from '../../../tasks-runner/utils';
 import { workspaceRoot } from '../../../utils/workspace-root';
 import { DEFAULT_VERSION_ACTIONS_PATH } from '../config/config';
@@ -138,9 +141,9 @@ export async function resolveVersionActionsForProject(
     VersionActionsClass = cachedData.VersionActionsClass;
     afterAllProjectsVersioned = cachedData.afterAllProjectsVersioned;
   } else {
-    const loaded = versionActionsPath.endsWith('.ts')
+    const loaded = /\.[cm]?ts$/.test(versionActionsPath)
       ? loadTsFile<any>(versionActionsPath)
-      : require(versionActionsPath);
+      : requireWithTsconfigFallback<any>(versionActionsPath);
     VersionActionsClass = loaded.default ?? loaded;
     if (!VersionActionsClass) {
       throw new Error(
