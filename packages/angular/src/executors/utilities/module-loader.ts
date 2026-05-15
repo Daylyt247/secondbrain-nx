@@ -14,8 +14,8 @@ export async function loadModule<T = any>(
   }
 
   if (ext === '.cjs') {
-    const result = require(path);
-    return result.default ?? result;
+    const result = requireWithTsconfigFallback<T>(path, tsConfig);
+    return (result as { default?: T }).default ?? result;
   }
 
   const isTs = ext === '.ts' || ext === '.cts' || ext === '.mts';

@@ -70,11 +70,16 @@ export async function handleImport<T = any>(
       try {
         return require(normalizedPath) as T;
       } catch (retryErr: any) {
+        // Mirror the initial-catch behavior: if the compiled output surfaces
+        // TLA or ESM-only-as-CJS, dispatch to dynamic import() instead of
+        // re-throwing. Without this, a plugin whose source needed the
+        // transpiler fallback AND emits top-level await fails here instead of
+        // loading.
         if (
           retryErr?.code === 'ERR_REQUIRE_ESM' ||
           retryErr?.code === 'ERR_REQUIRE_ASYNC_MODULE'
         ) {
-          throw retryErr;
+          return import(resolvedPath) as Promise<T>;
         }
         if (retryErr instanceof Error) {
           // Lazy-require NX_PREFIX so we don't pull logger -> daemon into

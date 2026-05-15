@@ -71,36 +71,45 @@ async function loadTypeScriptModule(
     return loadTsFile(path, tsConfigPath);
   } catch (e: any) {
     if (
-      e?.code === 'ERR_REQUIRE_ESM' ||
-      e?.code === 'ERR_REQUIRE_ASYNC_MODULE'
+      e?.code !== 'ERR_REQUIRE_ESM' &&
+      e?.code !== 'ERR_REQUIRE_ASYNC_MODULE'
     ) {
-      // Force-register an ESM TypeScript loader before dispatching to
-      // dynamic import(). Without this, an .mts config that combines
-      // top-level await with unsupported TS syntax (enum, runtime
-      // namespace, etc.) would fail under native strip - swc-node's CJS
-      // hook can't intercept dynamic imports.
-      //
+      throw e;
+    }
+
+    // The module must be loaded via dynamic import(). Register
+    // tsconfig-paths first so workspace alias imports resolve, then try a
+    // native dynamic import. Node 22.18+ LTS strips TS types on the ESM
+    // path natively, so pure-ESM TLA configs load without any swc/ts-node
+    // ESM loader. Only escalate to forceRegisterEsmLoader (which throws
+    // when neither @swc-node/register nor ts-node is installed) if the
+    // native attempt hits unsupported TS syntax.
+    const cleanup = registerTsProject(tsConfigPath);
+    try {
+      return await loadESM(path);
+    } catch (esmErr: any) {
+      if (
+        esmErr?.code !== 'ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX' ||
+        typeof forceRegisterEsmLoader !== 'function'
+      ) {
+        throw esmErr;
+      }
       // Module.register is global and one-shot per process. After this
       // runs, every subsequent ESM import in the process is routed
-      // through the registered loader, forfeiting Node's native
-      // TypeScript stripping for the dynamic-import path. Worth it for
-      // recovery; if the workspace doesn't actually need it, the loader
-      // is never registered (the lazy fallback in loadTsFile handles
-      // most files via require() before this point).
-      //
-      // typeof check guards @nx/devkit running against an older nx that
-      // doesn't export forceRegisterEsmLoader yet.
-      if (typeof forceRegisterEsmLoader === 'function') {
-        forceRegisterEsmLoader();
-      }
-      const cleanup = registerTsProject(tsConfigPath);
+      // through the registered loader, forfeiting Node's native TS
+      // stripping for the dynamic-import path. If neither swc-node nor
+      // ts-node is installed, forceRegisterEsmLoader throws - surface the
+      // original ESM error in that case so the user sees the real
+      // problem, not a misleading "loader missing" message.
       try {
-        return await loadESM(path);
-      } finally {
-        cleanup();
+        forceRegisterEsmLoader();
+      } catch {
+        throw esmErr;
       }
+      return await loadESM(path);
+    } finally {
+      cleanup();
     }
-    throw e;
   }
 }
 

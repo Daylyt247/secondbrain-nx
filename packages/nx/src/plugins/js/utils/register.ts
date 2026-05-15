@@ -190,11 +190,15 @@ export function isNativeStripPreferred(): boolean {
  * workspace path mapping will not, for example).
  *
  * Behavior change in v23: when the runtime exposes native TypeScript type
- * stripping (`process.features.typescript`), this function is a noop and no
- * longer registers `tsconfig-paths`. Callers relying on the side effect of
- * path mapping should switch to `loadTsFile`, which registers swc/ts-node
- * + tsconfig-paths on demand when the strip path fails. To restore the
- * legacy behavior, set `NX_PREFER_NODE_STRIP_TYPES=false`.
+ * stripping (`process.features.typescript`), this function skips the
+ * transpiler (Node handles `.ts` directly) but still registers
+ * `tsconfig-paths`. Path mapping is orthogonal to transpilation - callers
+ * relying on tsconfig `paths` for workspace alias resolution still get them.
+ * For loading a `.ts` file whose syntax native strip can't handle (`enum`,
+ * runtime `namespace`, legacy decorators, etc.), use `loadTsFile`, which
+ * registers swc/ts-node + tsconfig-paths on demand. To restore the legacy
+ * behavior (always register swc/ts-node + tsconfig-paths up front), set
+ * `NX_PREFER_NODE_STRIP_TYPES=false`.
  *
  * @returns cleanup function
  */
@@ -731,16 +735,24 @@ export function loadTsFile<T = any>(
 }
 
 /**
- * If the error isn't an ESM-redispatch signal that callers expect to handle
- * (`ERR_REQUIRE_ESM`, `ERR_REQUIRE_ASYNC_MODULE`), append the
- * `NX_PREFER_NODE_STRIP_TYPES=false` opt-out hint so users know there's an
- * escape hatch for cases native strip can't reach (e.g. ESM with top-level
- * await + unsupported TS syntax).
+ * Append the `NX_PREFER_NODE_STRIP_TYPES=false` opt-out hint so users know
+ * there's an escape hatch for cases native strip can't reach (e.g. ESM with
+ * top-level await + unsupported TS syntax). Skipped for:
+ *   - ESM-redispatch signals callers expect to handle
+ *     (`ERR_REQUIRE_ESM`, `ERR_REQUIRE_ASYNC_MODULE`)
+ *   - plain module-resolution failures (`MODULE_NOT_FOUND`,
+ *     `ERR_MODULE_NOT_FOUND`) - disabling strip-types doesn't fix a missing
+ *     module, the hint just misleads.
  */
 function augmentLoadFailure(filePath: string, err: unknown): unknown {
   if (!(err instanceof Error)) return err;
   const code = (err as { code?: string }).code;
-  if (code === 'ERR_REQUIRE_ESM' || code === 'ERR_REQUIRE_ASYNC_MODULE') {
+  if (
+    code === 'ERR_REQUIRE_ESM' ||
+    code === 'ERR_REQUIRE_ASYNC_MODULE' ||
+    code === 'MODULE_NOT_FOUND' ||
+    code === 'ERR_MODULE_NOT_FOUND'
+  ) {
     return err;
   }
   if (err.message.includes(NX_PREFER_NODE_STRIP_TYPES_DOCS_URL)) {
