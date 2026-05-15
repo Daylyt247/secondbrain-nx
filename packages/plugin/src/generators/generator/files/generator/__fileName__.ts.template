@@ -19,7 +19,7 @@ export async function <%= generatorFnName %> (tree: Tree, options: <%= schemaInt
       targets: {}
     }
   );
-  generateFiles(tree, path.join(<%= dirnameExpression %>, 'files'), projectRoot, options);
+  generateFiles(tree, path.join(__dirname, 'files'), projectRoot, options);
   await formatFiles(tree);
 }
 

@@ -492,13 +492,13 @@ export default defineConfig({
 
     expect(tree.read('libs/my-lib/cypress.config.ts', 'utf-8'))
       .toMatchInlineSnapshot(`
-      "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset';
+      "const { nxE2EPreset } = require('@nx/cypress/plugins/cypress-preset');
       import { defineConfig } from 'cypress';
       import { nxComponentTestingPreset } from '@nx/angular/plugins/component-testing';
       export default defineConfig({
         component: nxComponentTestingPreset(__filename),
         e2e: {
-          ...nxE2EPreset(import.meta.dirname, {
+          ...nxE2EPreset(__filename, {
             cypressDir: 'src',
           }),
           baseUrl: 'http://localhost:4200',
@@ -647,6 +647,34 @@ export default defineConfig({
         files: [],
         references: [],
       });
+    });
+
+    it('should emit ESM-shape cypress.config.ts in TS solution workspaces', async () => {
+      // Regression: in TS solution workspaces, per-project package.json
+      // declares `"type": "module"` so Node loads cypress.config.ts as
+      // ESM. `__filename` is undefined in ESM scope, so the generator
+      // must emit `import.meta.dirname` even when the project's own
+      // package.json hasn't been written yet at generation time.
+      addProject(tree, { name: 'my-lib', type: 'libs' });
+
+      await cypressE2EConfigurationGenerator(tree, {
+        project: 'my-lib',
+        baseUrl: 'http://localhost:4200',
+      });
+
+      expect(tree.read('libs/my-lib/cypress.config.ts', 'utf-8'))
+        .toMatchInlineSnapshot(`
+        "import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset';
+        import { defineConfig } from 'cypress';
+        export default defineConfig({
+            e2e: {
+                ...nxE2EPreset(import.meta.dirname, {
+                    "cypressDir": "src"
+                }),
+                baseUrl: 'http://localhost:4200'
+            }
+        });"
+      `);
     });
 
     it('should handle existing tsconfig.json files', async () => {
